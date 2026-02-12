@@ -11,7 +11,7 @@ const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
   };
 
   const sendWhatsApp = (t) => {
-    const shareUrl = new URL(window.location.origin + window.location.pathname);
+    const shareUrl = new URL(window.location.href);
     const safeVaquitaId = getSafeVaquitaId(vaquitaId);
     if (safeVaquitaId !== null) {
       shareUrl.searchParams.set("v", safeVaquitaId);

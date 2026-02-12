@@ -18,8 +18,18 @@ export const useVaquita = () => {
     const params = new URLSearchParams(window.location.search);
     const urlId = params.get("v");
     if (urlId) {
-      localStorage.setItem("vaquitaId", urlId);
-      return urlId;
+      // Sanitize the URL parameter using the same logic as selectVaquita
+      const rawId = (urlId ?? "").toString();
+      const cleanId = rawId
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .slice(0, 100);
+      if (cleanId) {
+        localStorage.setItem("vaquitaId", cleanId);
+        return cleanId;
+      }
     }
     return localStorage.getItem("vaquitaId") || "";
   });
@@ -144,7 +154,7 @@ export const useVaquita = () => {
 
       const url = new URL(window.location.href);
       url.searchParams.set("v", cleanId);
-      window.history.pushState({}, "", url.toString());
+      window.history.replaceState({}, "", url.toString());
     }
   };
 

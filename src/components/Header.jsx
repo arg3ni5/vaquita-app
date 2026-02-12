@@ -16,10 +16,15 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
     if (validVaquitaId !== null) {
       url.searchParams.set("v", validVaquitaId);
     }
-    navigator.clipboard.writeText(url.toString()).then(() => {
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
-    });
+    navigator.clipboard.writeText(url.toString())
+      .then(() => {
+        setCopyFeedback(true);
+        setTimeout(() => setCopyFeedback(false), 2000);
+      })
+      .catch((err) => {
+        console.error('Failed to copy link:', err);
+        alert('No se pudo copiar el enlace. Por favor, inténtalo de nuevo.');
+      });
   };
   return (
     <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">

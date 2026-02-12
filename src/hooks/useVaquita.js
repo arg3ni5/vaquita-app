@@ -100,7 +100,7 @@ export const useVaquita = () => {
     }
   };
 
-  const logout = () => signOut(auth);
+  const logout = async () => signOut(auth);
 
   // CRUD Operations
   const selectVaquita = (id) => {

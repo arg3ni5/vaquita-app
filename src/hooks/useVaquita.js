@@ -23,7 +23,21 @@ import { auth, db, appId } from '../firebase';
 export const useVaquita = () => {
   const [vaquitaId, setVaquitaId] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('v') || localStorage.getItem('vaquitaId') || '';
+    const paramVaquitaId = urlParams.get('v');
+    const explicitlyLeft = sessionStorage.getItem('explicitlyLeft');
+    
+    // If user explicitly left, don't auto-rejoin from URL
+    if (explicitlyLeft && paramVaquitaId) {
+      sessionStorage.removeItem('explicitlyLeft');
+      return '';
+    }
+    
+    if (paramVaquitaId) {
+      // Sync localStorage with vaquitaId from URL on initial load
+      localStorage.setItem('vaquitaId', paramVaquitaId);
+      return paramVaquitaId;
+    }
+    return localStorage.getItem('vaquitaId') || '';
   });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -93,6 +107,12 @@ export const useVaquita = () => {
 
   const loginWithPhone = async (phoneNumber, recaptchaContainerId) => {
     try {
+      // Validate E.164 format (e.g., +15558675310)
+      const e164Regex = /^\+[1-9]\d{1,14}$/;
+      if (!e164Regex.test(phoneNumber)) {
+        throw new Error('Phone number must be in E.164 format (e.g., +15558675310)');
+      }
+      
       const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
         size: 'invisible'
       });
@@ -107,7 +127,12 @@ export const useVaquita = () => {
 
   // CRUD Operations
   const selectVaquita = (id) => {
-    const cleanId = id.trim().toLowerCase().replace(/\s+/g, '-');
+    const cleanId = id
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .slice(0, 100);
     if (cleanId) {
       setDataLoading(true);
       setVaquitaId(cleanId);
@@ -122,6 +147,7 @@ export const useVaquita = () => {
     setVaquitaId('');
     setDataLoading(false);
     localStorage.removeItem('vaquitaId');
+    sessionStorage.setItem('explicitlyLeft', 'true');
     const url = new URL(window.location);
     url.searchParams.delete('v');
     window.history.pushState({}, '', url);

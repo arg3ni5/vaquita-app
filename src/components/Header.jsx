@@ -4,15 +4,50 @@ import { Calculator, Settings, RefreshCw, Cloud, LogOut, Share2 } from 'lucide-r
 const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const handleShare = () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('¡Enlace copiado al portapapeles!');
-    }).catch(err => {
-      console.error('Error al copiar el enlace: ', err);
-    });
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(url).then(() => {
+        alert('¡Enlace copiado al portapapeles!');
+      }).catch(err => {
+        console.error('Error al copiar el enlace: ', err);
+      });
+      return;
+    }
+
+    // Fallback for browsers/environments without the async clipboard API
+    const textarea = document.createElement('textarea');
+    textarea.value = url;
+    // Avoid showing the textarea on screen
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.padding = '0';
+    textarea.style.border = 'none';
+    textarea.style.outline = 'none';
+    textarea.style.boxShadow = 'none';
+    textarea.style.background = 'transparent';
+
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert('¡Enlace copiado al portapapeles!');
+      } else {
+        console.error('Error al copiar el enlace: comando copy no fue exitoso');
+      }
+    } catch (err) {
+      console.error('Error al copiar el enlace (fallback): ', err);
+    } finally {
+      document.body.removeChild(textarea);
+    }
   };
 
   return (
-    <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
       <div className="flex items-center gap-3">
         <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-100">
           <Calculator className="w-7 h-7 text-white" />

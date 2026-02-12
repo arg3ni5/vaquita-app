@@ -20,8 +20,19 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     setIsLoading(true);
     try {
       await loginWithGoogle();
-    } catch {
-      alert("Error al iniciar sesión con Google");
+    } catch (error) {
+      console.error("Google login error:", error);
+      let message = "Error al iniciar sesión con Google";
+      if (error.code === 'auth/popup-closed-by-user') {
+        message = "Ventana de inicio de sesión cerrada";
+      } else if (error.code === 'auth/popup-blocked') {
+        message = "Ventana emergente bloqueada. Permite ventanas emergentes e intenta de nuevo";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        message = "Solicitud cancelada";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "Error de red. Verifica tu conexión a internet";
+      }
+      alert(message);
     } finally {
       setIsLoading(false);
     }
@@ -33,8 +44,23 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       const confirmation = await loginWithPhone(phone, 'recaptcha-container');
       setConfirmationResult(confirmation);
-    } catch {
-      alert("Error al enviar SMS. Verifica el número.");
+    } catch (error) {
+      console.error("Phone login error:", error);
+      let message = "Error al enviar SMS. Verifica el número.";
+      if (error.message && error.message.includes('E.164')) {
+        message = "Número inválido. Usa formato internacional (ej: +506 8888 8888)";
+      } else if (error.code === 'auth/invalid-phone-number') {
+        message = "Número de teléfono inválido";
+      } else if (error.code === 'auth/missing-phone-number') {
+        message = "Debes ingresar un número de teléfono";
+      } else if (error.code === 'auth/quota-exceeded') {
+        message = "Límite de SMS excedido. Intenta más tarde";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "Error de red. Verifica tu conexión a internet";
+      } else if (error.code === 'auth/too-many-requests') {
+        message = "Demasiados intentos. Intenta más tarde";
+      }
+      alert(message);
     } finally {
       setIsLoading(false);
     }
@@ -42,13 +68,26 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
+    if (!confirmationResult) {
+      alert("No hay código pendiente");
+      return;
+    }
     setIsLoading(true);
     try {
       await confirmationResult.confirm(otp);
       setShowPhoneLogin(false);
       setConfirmationResult(null);
-    } catch {
-      alert("Código incorrecto.");
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      let message = "Código incorrecto.";
+      if (error.code === 'auth/invalid-verification-code') {
+        message = "Código de verificación inválido. Verifica e intenta de nuevo";
+      } else if (error.code === 'auth/code-expired') {
+        message = "Código expirado. Solicita un nuevo código";
+      } else if (error.code === 'auth/missing-verification-code') {
+        message = "Debes ingresar el código de verificación";
+      }
+      alert(message);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +100,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div id="recaptcha-container"></div>
+      <div id="recaptcha-container" className="hidden"></div>
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-100">
@@ -161,10 +200,11 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+            <label htmlFor="vaquita-name" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
               Nombre de la Vaquita
             </label>
             <input
+              id="vaquita-name"
               autoFocus
               placeholder="Ej: Paseo-Playa-2024"
               value={name}

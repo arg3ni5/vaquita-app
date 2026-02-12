@@ -46,14 +46,14 @@ const getAuthErrorMessage = (error) => {
   }
 
   // Fallback: registrar error original para diagnóstico y mostrar mensaje genérico al usuario
-  console.error('Firebase auth error (fallback):', error);
-  return 'Error desconocido. Por favor, intenta nuevamente.';
+  console.error("Firebase auth error (fallback):", error);
+  return "Error desconocido. Por favor, intenta nuevamente.";
 };
 
 const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }) => {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
   const [showPhoneLogin, setShowPhoneLogin] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +70,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       await loginWithGoogle();
     } catch (error) {
-      showAlert('Error de inicio de sesión con Google', getAuthErrorMessage(error), 'error');
+      showAlert("Error de inicio de sesión con Google", getAuthErrorMessage(error), "error");
     } finally {
       setIsLoading(false);
     }
@@ -80,10 +80,10 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     e.preventDefault();
     setIsLoading(true);
     try {
-      const confirmation = await loginWithPhone(phone, 'recaptcha-container');
+      const confirmation = await loginWithPhone(phone, "recaptcha-container");
       setConfirmationResult(confirmation);
     } catch (error) {
-      showAlert('Error de inicio de sesión telefónico', getAuthErrorMessage(error), 'error');
+      showAlert("Error de inicio de sesión telefónico", getAuthErrorMessage(error), "error");
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +100,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       setShowPhoneLogin(false);
       setConfirmationResult(null);
     } catch (error) {
-      showAlert('Error de verificación OTP', getAuthErrorMessage(error), 'error');
+      showAlert("Error de verificación OTP", getAuthErrorMessage(error), "error");
     } finally {
       setIsLoading(false);
     }

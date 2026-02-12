@@ -6,14 +6,13 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
-    const dummy = document.createElement("input");
-    document.body.appendChild(dummy);
-    dummy.value = window.location.href;
-    dummy.select();
-    document.execCommand("copy");
-    document.body.removeChild(dummy);
-    setCopyFeedback(true);
-    setTimeout(() => setCopyFeedback(false), 2000);
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("v", vaquitaId);
+
+    navigator.clipboard.writeText(url.toString()).then(() => {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    });
   };
   return (
     <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">

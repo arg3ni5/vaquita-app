@@ -101,6 +101,7 @@ const App = () => {
               totals={totals}
               friends={friends}
               currency={currency}
+              vaquitaId={vaquitaId}
             />
           </div>
         </div>

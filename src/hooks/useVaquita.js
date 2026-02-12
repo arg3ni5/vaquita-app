@@ -14,7 +14,15 @@ import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
 
 export const useVaquita = () => {
-  const [vaquitaId, setVaquitaId] = useState(() => localStorage.getItem("vaquitaId") || "");
+  const [vaquitaId, setVaquitaId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get("v");
+    if (urlId) {
+      localStorage.setItem("vaquitaId", urlId);
+      return urlId;
+    }
+    return localStorage.getItem("vaquitaId") || "";
+  });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [user, setUser] = useState(null);
@@ -133,6 +141,10 @@ export const useVaquita = () => {
       setDataLoading(true);
       setVaquitaId(cleanId);
       localStorage.setItem("vaquitaId", cleanId);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", cleanId);
+      window.history.pushState({}, "", url.toString());
     }
   };
 
@@ -142,6 +154,10 @@ export const useVaquita = () => {
     localStorage.removeItem("vaquitaId");
     setFriends([]);
     setExpenses([]);
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("v");
+    window.history.pushState({}, "", url.toString());
   };
 
   const addFriend = async (name, phone) => {

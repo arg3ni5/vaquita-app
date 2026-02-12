@@ -1,11 +1,19 @@
 import React from 'react';
 import { CheckCircle2, ArrowRight, MessageCircle } from 'lucide-react';
 
-const SummarySection = ({ totals, friends, currency }) => {
+const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
   const sendWhatsApp = (t) => {
+    const shareUrl = new URL(window.location.origin + window.location.pathname);
+    shareUrl.searchParams.set("v", vaquitaId);
+
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";
-    const message = `¡Hola ${t.from}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${t.to}. ¡Gracias!`;
+    const link = "\u{1F517}";
+    const message = `¡Hola ${t.from}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${t.to}.
+
+${link} Ver detalle: ${shareUrl.toString()}
+
+¡Gracias!`;
     const url = `https://wa.me/${t.fromPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

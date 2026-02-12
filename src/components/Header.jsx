@@ -1,7 +1,7 @@
 import React from 'react';
-import { Calculator, Settings, RefreshCw, Cloud } from 'lucide-react';
+import { Calculator, Settings, RefreshCw, Cloud, LogOut } from 'lucide-react';
 
-const Header = ({ currency, setCurrency, onReset }) => {
+const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   return (
     <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
       <div className="flex items-center gap-3">
@@ -9,7 +9,12 @@ const Header = ({ currency, setCurrency, onReset }) => {
           <Calculator className="w-7 h-7 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-black tracking-tight leading-none">Vaquita <span className="text-indigo-600">App</span></h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black tracking-tight leading-none">Vaquita <span className="text-indigo-600">App</span></h1>
+            <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter border border-slate-200">
+              ID: {vaquitaId}
+            </span>
+          </div>
           <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-600 font-bold uppercase">
             <Cloud className="w-3 h-3" /> Nube Activa
           </div>
@@ -34,9 +39,16 @@ const Header = ({ currency, setCurrency, onReset }) => {
         <button
           onClick={onReset}
           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-          title="Limpiar todo"
+          title="Limpiar esta vaquita"
         >
           <RefreshCw className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onLeave}
+          className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
+          title="Salir de la vaquita"
+        >
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
     </header>

@@ -2,9 +2,20 @@ import React from 'react';
 import { CheckCircle2, ArrowRight, MessageCircle } from 'lucide-react';
 
 const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
+  const getSafeVaquitaId = (rawId) => {
+    if (typeof rawId !== 'string') return null;
+    const trimmed = rawId.trim();
+    if (trimmed === '') return null;
+    // Allow only typical ID characters: letters, digits, underscore and hyphen
+    return /^[a-zA-Z0-9_-]+$/.test(trimmed) ? trimmed : null;
+  };
+
   const sendWhatsApp = (t) => {
     const shareUrl = new URL(window.location.origin + window.location.pathname);
-    shareUrl.searchParams.set("v", vaquitaId);
+    const safeVaquitaId = getSafeVaquitaId(vaquitaId);
+    if (safeVaquitaId !== null) {
+      shareUrl.searchParams.set("v", safeVaquitaId);
+    }
 
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";

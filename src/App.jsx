@@ -2,12 +2,16 @@ import React from 'react';
 import { Cloud } from 'lucide-react';
 import { useVaquita } from './hooks/useVaquita';
 import Header from './components/Header';
+import JoinVaquita from './components/JoinVaquita';
 import FriendSection from './components/FriendSection';
 import ExpenseSection from './components/ExpenseSection';
 import SummarySection from './components/SummarySection';
 
 const App = () => {
   const {
+    vaquitaId,
+    selectVaquita,
+    leaveVaquita,
     friends,
     expenses,
     loading,
@@ -47,6 +51,10 @@ const App = () => {
     );
   }
 
+  if (!vaquitaId) {
+    return <JoinVaquita onSelect={selectVaquita} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
@@ -54,6 +62,8 @@ const App = () => {
           currency={currency}
           setCurrency={setCurrency}
           onReset={handleReset}
+          vaquitaId={vaquitaId}
+          onLeave={leaveVaquita}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

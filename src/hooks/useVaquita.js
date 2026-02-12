@@ -16,10 +16,12 @@ import {
 import { auth, db, appId } from '../firebase';
 
 export const useVaquita = () => {
+  const [vaquitaId, setVaquitaId] = useState(() => localStorage.getItem('vaquitaId') || '');
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem('vaquitaId'));
   const [currency, setCurrency] = useState('¢');
 
   // Auth Initialization
@@ -36,22 +38,28 @@ export const useVaquita = () => {
       }
     };
     initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthLoading(false);
+    });
     return () => unsubscribe();
   }, []);
 
   // Data Synchronization
   useEffect(() => {
-    if (!user) return;
+    if (!user || !vaquitaId) return;
 
-    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'friends');
-    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'expenses');
+    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends');
+    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses');
 
     const unsubFriends = onSnapshot(friendsRef, (snapshot) => {
       const friendsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setFriends(friendsList);
-      setLoading(false);
-    }, (error) => console.error("Error loading friends:", error));
+      setDataLoading(false);
+    }, (error) => {
+      console.error("Error loading friends:", error);
+      setDataLoading(false);
+    });
 
     const unsubExpenses = onSnapshot(expensesRef, (snapshot) => {
       const expensesList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -62,12 +70,29 @@ export const useVaquita = () => {
       unsubFriends();
       unsubExpenses();
     };
-  }, [user]);
+  }, [user, vaquitaId]);
 
   // CRUD Operations
+  const selectVaquita = (id) => {
+    const cleanId = id.trim().toLowerCase().replace(/\s+/g, '-');
+    if (cleanId) {
+      setDataLoading(true);
+      setVaquitaId(cleanId);
+      localStorage.setItem('vaquitaId', cleanId);
+    }
+  };
+
+  const leaveVaquita = () => {
+    setVaquitaId('');
+    setDataLoading(false);
+    localStorage.removeItem('vaquitaId');
+    setFriends([]);
+    setExpenses([]);
+  };
+
   const addFriend = async (name, phone) => {
-    if (!name.trim() || !user) return;
-    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'friends');
+    if (!name.trim() || !user || !vaquitaId) return;
+    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends');
     await addDoc(friendsRef, {
       name,
       phone: phone.replace(/\D/g, ''),
@@ -76,8 +101,8 @@ export const useVaquita = () => {
   };
 
   const updateFriend = async (id, name, phone) => {
-    if (!id || !user) return;
-    const friendDoc = doc(db, 'artifacts', appId, 'public', 'data', 'friends', id);
+    if (!id || !user || !vaquitaId) return;
+    const friendDoc = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends', id);
     await updateDoc(friendDoc, {
       name,
       phone: phone.replace(/\D/g, '')
@@ -85,17 +110,17 @@ export const useVaquita = () => {
   };
 
   const removeFriend = async (id) => {
-    if (!user) return;
-    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'friends', id));
+    if (!user || !vaquitaId) return;
+    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends', id));
     const associatedExpenses = expenses.filter(e => e.friendId === id);
     for (const exp of associatedExpenses) {
-      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expenses', exp.id));
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses', exp.id));
     }
   };
 
   const addExpense = async (friendId, amount) => {
-    if (!friendId || !amount || !user) return;
-    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'expenses');
+    if (!friendId || !amount || !user || !vaquitaId) return;
+    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses');
     await addDoc(expensesRef, {
       friendId,
       amount: parseFloat(amount),
@@ -104,8 +129,8 @@ export const useVaquita = () => {
   };
 
   const updateExpense = async (id, friendId, amount) => {
-    if (!id || !user) return;
-    const expenseDoc = doc(db, 'artifacts', appId, 'public', 'data', 'expenses', id);
+    if (!id || !user || !vaquitaId) return;
+    const expenseDoc = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses', id);
     await updateDoc(expenseDoc, {
       friendId,
       amount: parseFloat(amount)
@@ -113,14 +138,14 @@ export const useVaquita = () => {
   };
 
   const removeExpense = async (id) => {
-    if (!user) return;
-    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expenses', id));
+    if (!user || !vaquitaId) return;
+    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses', id));
   };
 
   const resetAll = async () => {
-    if (!user) return;
-    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'friends');
-    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'expenses');
+    if (!user || !vaquitaId) return;
+    const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends');
+    const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses');
 
     const fDocs = await getDocs(friendsRef);
     const eDocs = await getDocs(expensesRef);
@@ -172,9 +197,12 @@ export const useVaquita = () => {
   }, [friends, expenses]);
 
   return {
+    vaquitaId,
+    selectVaquita,
+    leaveVaquita,
     friends,
     expenses,
-    loading,
+    loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
     user,
     currency,
     setCurrency,

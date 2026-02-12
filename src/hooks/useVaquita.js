@@ -56,8 +56,10 @@ export const useVaquita = () => {
         
         return cleanId;
       }
-      // If sanitization resulted in empty string, ignore the invalid URL param
-      return localStorage.getItem('vaquitaId') || '';
+      // If sanitization resulted in empty string, the URL param is invalid
+      // Clear localStorage to prevent using a potentially malicious stored value
+      localStorage.removeItem('vaquitaId');
+      return '';
     }
     return localStorage.getItem('vaquitaId') || '';
   });

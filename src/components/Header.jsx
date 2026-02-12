@@ -1,8 +1,9 @@
 import React from "react";
-import { Calculator, Settings, RefreshCw, Cloud, LogOut, Share2, Check } from "lucide-react";
+import { Calculator, Settings, RefreshCw, Cloud, LogOut, Share2, Check, Pencil } from "lucide-react";
 import { useState } from "react";
+import MySwal from "../utils/swal";
 
-const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
+const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
@@ -18,6 +19,32 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
         console.error("Error al copiar al portapapeles:", err);
       });
   };
+
+  const editTitle = async () => {
+    const { value: newTitle } = await MySwal.fire({
+      title: "Editar nombre de la vaquita",
+      input: "text",
+      inputValue: title,
+      showCancelButton: true,
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      customClass: {
+        popup: 'rounded-[2rem] border-none shadow-2xl bg-white',
+        title: 'text-xl font-black text-slate-800 pt-6',
+        input: 'rounded-xl border-slate-200 focus:ring-indigo-500 mx-6',
+        confirmButton: 'bg-indigo-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 mx-2 mb-4',
+        cancelButton: 'bg-slate-100 text-slate-500 px-8 py-3.5 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all mx-2 mb-4'
+      },
+      buttonsStyling: false,
+      inputValidator: (value) => {
+        if (!value) return "¡Necesitas escribir un nombre!";
+      }
+    });
+
+    if (newTitle) {
+      await updateVaquitaInfo({ title: newTitle });
+    }
+  };
   return (
     <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
       <div className="flex items-center gap-4">
@@ -26,8 +53,12 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight leading-none">
-              Vaquita <span className="text-indigo-600">App</span>
+            <h1
+              onClick={editTitle}
+              className="text-2xl font-black tracking-tight leading-none cursor-pointer hover:text-indigo-600 transition-colors flex items-center gap-2"
+            >
+              {title || "Vaquita App"}
+              <Pencil className="w-4 h-4 text-slate-300" />
             </h1>
             <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tighter border border-slate-200">ID: {vaquitaId}</span>
           </div>

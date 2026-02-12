@@ -29,7 +29,9 @@ const App = () => {
     loginWithGoogle,
     loginWithPhone,
     logout,
-    totals
+    totals,
+    title,
+    updateVaquitaInfo
   } = useVaquita();
 
   const handleReset = async () => {
@@ -73,6 +75,8 @@ const App = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <Header
+          title={title}
+          updateVaquitaInfo={updateVaquitaInfo}
           currency={currency}
           setCurrency={setCurrency}
           onReset={handleReset}

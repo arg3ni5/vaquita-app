@@ -33,10 +33,11 @@ const JoinVaquita = ({ onSelect }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+            <label htmlFor="vaquita-name" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
               Nombre de la Vaquita
             </label>
             <input
+              id="vaquita-name"
               autoFocus
               placeholder="Ej: Paseo-Playa-2024"
               value={name}

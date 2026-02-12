@@ -10,14 +10,14 @@ const getAuthErrorMessage = (error) => {
   const errorMap = {
     // Google Sign-in errors
     'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
-    'auth/popup-closed-by-user': 'Iniciaste sesión pero cerraste la ventana antes de completar el proceso.',
+    'auth/popup-closed-by-user': 'Cerraste la ventana antes de completar el inicio de sesión.',
     'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
     'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
     'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
     'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
     
     // Phone authentication errors
-    'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +506 8888 8888).',
+    'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
     'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
     'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
     'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',

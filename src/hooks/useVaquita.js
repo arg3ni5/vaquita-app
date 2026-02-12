@@ -104,7 +104,13 @@ export const useVaquita = () => {
 
   // CRUD Operations
   const selectVaquita = (id) => {
-    const cleanId = id.trim().toLowerCase().replace(/\s+/g, '-');
+    const rawId = (id ?? '').toString();
+    const cleanId = rawId
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .slice(0, 100);
     if (cleanId) {
       setDataLoading(true);
       setVaquitaId(cleanId);

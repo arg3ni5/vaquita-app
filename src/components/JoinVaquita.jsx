@@ -1,38 +1,39 @@
-import React, { useState } from 'react';
-import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
-import { showAlert } from '../utils/swal';
+import React, { useState } from "react";
+import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from "lucide-react";
+import { showAlert } from "../utils/swal";
+import logo from "../assets/vaquita-logo.png";
 
 // Map Firebase auth error codes to user-friendly Spanish messages
 const AUTH_ERROR_MESSAGES = {
   // Google Sign-in errors
-  'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
-  'auth/popup-closed-by-user': 'Cerraste la ventana antes de completar el inicio de sesión.',
-  'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
-  'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
-  'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
-  'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
+  "auth/popup-blocked": "El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.",
+  "auth/popup-closed-by-user": "Cerraste la ventana antes de completar el inicio de sesión.",
+  "auth/cancelled-popup-request": "Se canceló la solicitud de inicio de sesión.",
+  "auth/network-request-failed": "Error de conexión. Verifica tu conexión a internet e intenta nuevamente.",
+  "auth/unauthorized-domain": "Este dominio no está autorizado para autenticación.",
+  "auth/operation-not-allowed": "Este método de autenticación no está habilitado.",
 
   // Phone authentication errors
-  'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
-  'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
-  'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
-  'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
-  'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
+  "auth/invalid-phone-number": "El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).",
+  "auth/missing-phone-number": "Por favor, ingresa un número de teléfono.",
+  "auth/quota-exceeded": "Se excedió el límite de mensajes SMS. Intenta más tarde.",
+  "auth/captcha-check-failed": "Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.",
+  "auth/too-many-requests": "Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.",
 
   // OTP verification errors
-  'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
-  'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
-  'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
+  "auth/invalid-verification-code": "El código ingresado es incorrecto. Verifica e intenta nuevamente.",
+  "auth/code-expired": "El código ha expirado. Solicita un nuevo código.",
+  "auth/missing-verification-code": "Por favor, ingresa el código de verificación.",
 
   // General errors
-  'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
-  'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
-  'auth/timeout': 'La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.'
+  "auth/user-disabled": "Esta cuenta ha sido deshabilitada.",
+  "auth/internal-error": "Error interno del servidor. Intenta nuevamente más tarde.",
+  "auth/timeout": "La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.",
 };
 
 // Utility function to get user-friendly error messages from Firebase auth errors
 const getAuthErrorMessage = (error) => {
-  const errorCode = error?.code || '';
+  const errorCode = error?.code || "";
 
   // Return specific error message if available, otherwise return a generic message with error code
   if (AUTH_ERROR_MESSAGES[errorCode]) {
@@ -113,16 +114,15 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-        <div id="recaptcha-container" style={{ display: 'none' }}></div>
+        <div id="recaptcha-container" style={{ display: "none" }}></div>
+        <img src={logo} alt="Vaquita App Logo" className="w-24 h-auto block mx-auto mb-4" />
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-100">
-            <Calculator className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-black tracking-tight">Vaquita <span className="text-indigo-600">App</span></h1>
+          <h1 className="text-3xl font-black tracking-tight">
+            Vaquita <span className="text-indigo-600">App</span>
+          </h1>
         </div>
 
         <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-slate-800">¡Bienvenido!</h2>
           <p className="text-slate-500 text-sm mt-2">Identifícate para unirte a la vaquita.</p>
         </div>
 

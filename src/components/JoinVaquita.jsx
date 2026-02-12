@@ -48,7 +48,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       console.error("Phone login error:", error);
       let message = "Error al enviar SMS. Verifica el número.";
       if (error.message && error.message.includes('E.164')) {
-        message = "Número inválido. Usa formato internacional (ej: +506 8888 8888)";
+        message = "Número inválido. Usa formato internacional (ej: +50688888888)";
       } else if (error.code === 'auth/invalid-phone-number') {
         message = "Número de teléfono inválido";
       } else if (error.code === 'auth/missing-phone-number') {

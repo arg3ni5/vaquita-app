@@ -34,9 +34,30 @@ export const useVaquita = () => {
     }
     
     if (paramVaquitaId) {
-      // Sync localStorage with vaquitaId from URL on initial load
-      localStorage.setItem('vaquitaId', paramVaquitaId);
-      return paramVaquitaId;
+      // Sanitize URL parameter using the same logic as selectVaquita
+      const cleanId = paramVaquitaId
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .slice(0, 100);
+      
+      // Only use the ID if it's valid after sanitization
+      if (cleanId) {
+        // Sync localStorage with sanitized vaquitaId from URL on initial load
+        localStorage.setItem('vaquitaId', cleanId);
+        
+        // Update URL to cleaned value if it was different
+        if (cleanId !== paramVaquitaId) {
+          const url = new URL(window.location);
+          url.searchParams.set('v', cleanId);
+          window.history.replaceState({}, '', url);
+        }
+        
+        return cleanId;
+      }
+      // If sanitization resulted in empty string, ignore the invalid URL param
+      return localStorage.getItem('vaquitaId') || '';
     }
     return localStorage.getItem('vaquitaId') || '';
   });
@@ -108,16 +129,19 @@ export const useVaquita = () => {
 
   const loginWithPhone = async (phoneNumber, recaptchaContainerId) => {
     try {
+      // Normalize phone number: remove spaces, dashes, parentheses while keeping the + prefix
+      const normalizedPhone = phoneNumber.replace(/[\s\-()]/g, '');
+      
       // Validate E.164 format (e.g., +15558675310)
       const e164Regex = /^\+[1-9]\d{1,14}$/;
-      if (!e164Regex.test(phoneNumber)) {
+      if (!e164Regex.test(normalizedPhone)) {
         throw new Error('Phone number must be in E.164 format (e.g., +15558675310)');
       }
       
       const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
         size: 'invisible'
       });
-      return await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+      return await signInWithPhoneNumber(auth, normalizedPhone, recaptchaVerifier);
     } catch (error) {
       console.error("Phone Login Error:", error);
       throw error;

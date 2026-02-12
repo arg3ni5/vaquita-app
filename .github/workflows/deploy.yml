@@ -19,7 +19,12 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm install
+      - name: Build with GitHub Target
       - run: npm run build
+        env:
+          VITE_DEPLOY_TARGET: gh-pages
+          VITE_FIREBASE_CONFIG: ${{ secrets.VITE_FIREBASE_CONFIG }}
+          VITE_APP_ID: ${{ secrets.VITE_APP_ID }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

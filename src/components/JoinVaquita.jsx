@@ -149,7 +149,14 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
                 <div className="bg-slate-50 p-4 rounded-2xl border border-indigo-100">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xs font-black text-indigo-600 uppercase tracking-widest">Login Telefónico</h3>
-                    <button onClick={() => {setShowPhoneLogin(false); setConfirmationResult(null)}} className="text-[10px] font-bold text-slate-400 hover:text-slate-600">Cancelar</button>
+                    <button
+                      onClick={() => {
+                        setShowPhoneLogin(false);
+                        setConfirmationResult(null);
+                      }}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600">
+                      Cancelar
+                    </button>
                   </div>
                   {!confirmationResult ? (
                     <form onSubmit={handlePhoneSubmit} className="space-y-3">
@@ -182,16 +189,14 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
                   <button
                     onClick={handleGoogleLogin}
                     disabled={isLoading}
-                    className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-slate-50 transition-all group"
-                  >
+                    className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-slate-50 transition-all group">
                     <Mail className="w-6 h-6 text-slate-400 group-hover:text-indigo-500" />
                     <span className="text-[10px] font-black uppercase text-slate-500">Gmail</span>
                   </button>
                   <button
                     onClick={() => setShowPhoneLogin(true)}
                     disabled={isLoading}
-                    className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-slate-50 transition-all group"
-                  >
+                    className="flex flex-col items-center gap-2 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-slate-50 transition-all group">
                     <Phone className="w-6 h-6 text-slate-400 group-hover:text-indigo-500" />
                     <span className="text-[10px] font-black uppercase text-slate-500">Teléfono</span>
                   </button>
@@ -230,8 +235,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 group"
-          >
+            className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 group">
             Entrar <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </form>

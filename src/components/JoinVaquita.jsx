@@ -61,8 +61,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div id="recaptcha-container"></div>
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+        <div id="recaptcha-container" style={{ display: 'none' }}></div>
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-100">
             <Calculator className="w-8 h-8 text-white" />

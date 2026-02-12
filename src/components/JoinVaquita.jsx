@@ -42,6 +42,9 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
+    if (!confirmationResult) {
+      return;
+    }
     setIsLoading(true);
     try {
       await confirmationResult.confirm(otp);

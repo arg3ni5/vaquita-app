@@ -5,7 +5,8 @@ const SummarySection = ({ totals, friends, currency }) => {
   const sendWhatsApp = (t) => {
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";
-    const message = `¡Hola ${t.from}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${t.to}. ¡Gracias!`;
+    const vaquitaUrl = window.location.href;
+    const message = `¡Hola ${t.from}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${t.to}. \n\nPuedes ver los detalles aquí: ${vaquitaUrl} \n\n¡Gracias!`;
     const url = `https://wa.me/${t.fromPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

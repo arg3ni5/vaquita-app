@@ -1,55 +1,5 @@
 import React, { useState } from 'react';
 import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
-
-const MySwal = withReactContent(Swal);
-// Map Firebase auth error codes to user-friendly Spanish messages
-const AUTH_ERROR_MESSAGES = {
-  // Google Sign-in errors
-  'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
-  'auth/popup-closed-by-user': 'Cerraste la ventana antes de completar el inicio de sesión.',
-  'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
-  'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
-  'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
-  'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
-
-  // Phone authentication errors
-  'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
-  'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
-  'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
-  'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
-  'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
-
-  // OTP verification errors
-  'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
-  'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
-  'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
-
-  // General errors
-  'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
-  'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
-  'auth/timeout': 'La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.'
-};
-
-// Utility function to get user-friendly error messages from Firebase auth errors
-const getAuthErrorMessage = (error) => {
-  const errorCode = error?.code || '';
-
-  // Return specific error message if available, otherwise return a generic message with error code
-  if (AUTH_ERROR_MESSAGES[errorCode]) {
-    return AUTH_ERROR_MESSAGES[errorCode];
-  }
-
-  // If we have an error code but no mapping, show it for debugging
-  if (errorCode) {
-    return `Error de autenticación (${errorCode}). Por favor, intenta nuevamente.`;
-  }
-
-  // Fallback: registrar error original para diagnóstico y mostrar mensaje genérico al usuario
-  console.error('Firebase auth error (fallback):', error);
-  return 'Error desconocido. Por favor, intenta nuevamente.';
-};
 
 const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }) => {
   const [name, setName] = useState('');
@@ -70,12 +20,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     setIsLoading(true);
     try {
       await loginWithGoogle();
-    } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de inicio de sesión con Google',
-        text: getAuthErrorMessage(error)
-      });
+    } catch {
+      alert("Error al iniciar sesión con Google");
     } finally {
       setIsLoading(false);
     }
@@ -87,12 +33,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       const confirmation = await loginWithPhone(phone, 'recaptcha-container');
       setConfirmationResult(confirmation);
-    } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de inicio de sesión telefónico',
-        text: getAuthErrorMessage(error)
-      });
+    } catch {
+      alert("Error al enviar SMS. Verifica el número.");
     } finally {
       setIsLoading(false);
     }
@@ -100,20 +42,13 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
-    if (!confirmationResult) {
-      return;
-    }
     setIsLoading(true);
     try {
       await confirmationResult.confirm(otp);
       setShowPhoneLogin(false);
       setConfirmationResult(null);
-    } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de verificación OTP',
-        text: getAuthErrorMessage(error)
-      });
+    } catch {
+      alert("Código incorrecto.");
     } finally {
       setIsLoading(false);
     }
@@ -126,8 +61,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div id="recaptcha-container"></div>
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
-        <div id="recaptcha-container" style={{ display: 'none' }}></div>
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-100">
             <Calculator className="w-8 h-8 text-white" />
@@ -226,14 +161,10 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="vaquita-name"
-              className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1"
-            >
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
               Nombre de la Vaquita
             </label>
             <input
-              id="vaquita-name"
               autoFocus
               placeholder="Ej: Paseo-Playa-2024"
               value={name}

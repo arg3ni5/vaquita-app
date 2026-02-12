@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
+import { showAlert } from '../utils/swal';
 
-const MySwal = withReactContent(Swal);
 // Map Firebase auth error codes to user-friendly Spanish messages
 const AUTH_ERROR_MESSAGES = {
   // Google Sign-in errors
@@ -71,11 +69,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       await loginWithGoogle();
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de inicio de sesión con Google',
-        text: getAuthErrorMessage(error)
-      });
+      showAlert('Error de inicio de sesión con Google', getAuthErrorMessage(error), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -88,11 +82,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       const confirmation = await loginWithPhone(phone, 'recaptcha-container');
       setConfirmationResult(confirmation);
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de inicio de sesión telefónico',
-        text: getAuthErrorMessage(error)
-      });
+      showAlert('Error de inicio de sesión telefónico', getAuthErrorMessage(error), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -109,11 +99,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       setShowPhoneLogin(false);
       setConfirmationResult(null);
     } catch (error) {
-      MySwal.fire({
-        icon: 'error',
-        title: 'Error de verificación OTP',
-        text: getAuthErrorMessage(error)
-      });
+      showAlert('Error de verificación OTP', getAuthErrorMessage(error), 'error');
     } finally {
       setIsLoading(false);
     }

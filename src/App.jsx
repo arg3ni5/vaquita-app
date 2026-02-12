@@ -1,6 +1,7 @@
 import React from 'react';
 import { Cloud } from 'lucide-react';
 import { useVaquita } from './hooks/useVaquita';
+import { showConfirm } from './utils/swal';
 import Header from './components/Header';
 import JoinVaquita from './components/JoinVaquita';
 import FriendSection from './components/FriendSection';
@@ -32,13 +33,15 @@ const App = () => {
   } = useVaquita();
 
   const handleReset = async () => {
-    if (confirm('¿Borrar TODOS los datos de la nube definitivamente?')) {
+    const result = await showConfirm('¿Estás seguro?', '¿Borrar TODOS los datos de la nube definitivamente?');
+    if (result.isConfirmed) {
       await resetAll();
     }
   };
 
   const handleRemoveFriend = async (id) => {
-    if (confirm('¿Eliminar a este amigo? Se borrarán también sus gastos.')) {
+    const result = await showConfirm('¿Eliminar amigo?', '¿Eliminar a este amigo? Se borrarán también sus gastos.');
+    if (result.isConfirmed) {
       await removeFriend(id);
     }
   };

@@ -13,10 +13,8 @@ import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs } fr
 import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
 
-// Utility function to sanitize vaquita IDs
-export const sanitizeVaquitaId = (id) => {
-  if (!id) return "";
-  return id
+const sanitizeId = (id) => {
+  return (id ?? "")
     .toString()
     .trim()
     .toLowerCase()
@@ -30,8 +28,7 @@ export const useVaquita = () => {
     const params = new URLSearchParams(window.location.search);
     const urlId = params.get("v");
     if (urlId) {
-      // Sanitize the URL parameter using the same logic as selectVaquita
-      const cleanId = sanitizeVaquitaId(urlId);
+      const cleanId = sanitizeId(urlId);
       if (cleanId) {
         localStorage.setItem("vaquitaId", cleanId);
         return cleanId;
@@ -146,7 +143,7 @@ export const useVaquita = () => {
 
   // CRUD Operations
   const selectVaquita = (id) => {
-    const cleanId = sanitizeVaquitaId(id);
+    const cleanId = sanitizeId(id);
     if (cleanId) {
       setDataLoading(true);
       setVaquitaId(cleanId);

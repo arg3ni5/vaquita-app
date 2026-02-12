@@ -1,16 +1,10 @@
 import React from 'react';
 import { CheckCircle2, ArrowRight, MessageCircle } from 'lucide-react';
-import { sanitizeVaquitaId } from '../hooks/useVaquita';
 
 const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
   const sendWhatsApp = (t) => {
     const shareUrl = new URL(window.location.href);
-    // Clear all existing search params to create a clean share URL
-    shareUrl.search = '';
-    const safeVaquitaId = sanitizeVaquitaId(vaquitaId);
-    if (safeVaquitaId) {
-      shareUrl.searchParams.set("v", safeVaquitaId);
-    }
+    shareUrl.searchParams.set("v", vaquitaId);
 
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";

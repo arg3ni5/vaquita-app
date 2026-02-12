@@ -24,13 +24,13 @@ const App = () => {
     addExpense,
     updateExpense,
     removeExpense,
-    resetAll,
+    resetSession,
     totals
   } = useVaquita();
 
   const handleReset = async () => {
-    if (confirm('¿Borrar TODOS los datos de la nube definitivamente?')) {
-      await resetAll();
+    if (confirm('¿Borrar todos los datos de esta vaquita definitivamente?')) {
+      await resetSession();
     }
   };
 

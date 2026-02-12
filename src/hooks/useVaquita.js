@@ -90,10 +90,23 @@ export const useVaquita = () => {
 
   const loginWithPhone = async (phoneNumber, recaptchaContainerId) => {
     try {
+      // Basic E.164 validation: must start with '+' and contain digits only after that.
+      if (typeof phoneNumber !== 'string') {
+        throw new Error('Phone number must be a string in E.164 format, e.g. +15551234567');
+      }
+
+      const trimmedPhoneNumber = phoneNumber.trim();
+      const e164Pattern = /^\+[1-9]\d{1,14}$/;
+
+      if (!e164Pattern.test(trimmedPhoneNumber)) {
+        throw new Error('Invalid phone number format. Use E.164 format, e.g. +15551234567');
+      }
+
       const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
         size: 'invisible'
       });
-      return await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+
+      return await signInWithPhoneNumber(auth, trimmedPhoneNumber, recaptchaVerifier);
     } catch (error) {
       console.error("Phone Login Error:", error);
       throw error;

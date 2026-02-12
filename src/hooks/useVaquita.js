@@ -19,8 +19,7 @@ export const useVaquita = () => {
     const urlId = params.get("v");
     if (urlId) {
       // Sanitize the URL parameter using the same logic as selectVaquita
-      const rawId = (urlId ?? "").toString();
-      const cleanId = rawId
+      const cleanId = urlId
         .trim()
         .toLowerCase()
         .replace(/\s+/g, "-")

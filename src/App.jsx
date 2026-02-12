@@ -24,13 +24,16 @@ const App = () => {
     addExpense,
     updateExpense,
     removeExpense,
-    resetSession,
+    resetAll,
+    loginWithGoogle,
+    loginWithPhone,
+    logout,
     totals
   } = useVaquita();
 
   const handleReset = async () => {
-    if (confirm('¿Borrar todos los datos de esta vaquita definitivamente?')) {
-      await resetSession();
+    if (confirm('¿Borrar TODOS los datos de la nube definitivamente?')) {
+      await resetAll();
     }
   };
 
@@ -52,7 +55,15 @@ const App = () => {
   }
 
   if (!vaquitaId) {
-    return <JoinVaquita onSelect={selectVaquita} />;
+    return (
+      <JoinVaquita
+        onSelect={selectVaquita}
+        user={user}
+        loginWithGoogle={loginWithGoogle}
+        loginWithPhone={loginWithPhone}
+        logout={logout}
+      />
+    );
   }
 
   return (
@@ -73,6 +84,7 @@ const App = () => {
               onAdd={addFriend}
               onUpdate={updateFriend}
               onRemove={handleRemoveFriend}
+              user={user}
             />
             <ExpenseSection
               expenses={expenses}

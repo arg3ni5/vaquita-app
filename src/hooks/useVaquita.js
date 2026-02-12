@@ -26,7 +26,8 @@ export const useVaquita = () => {
     const paramVaquitaId = urlParams.get('v');
     const explicitlyLeft = sessionStorage.getItem('explicitlyLeft');
     
-    // If user explicitly left, don't auto-rejoin from URL
+    // If user explicitly left a session, prevent auto-rejoin from URL parameter
+    // Clear the flag after checking to allow future joins
     if (explicitlyLeft && paramVaquitaId) {
       sessionStorage.removeItem('explicitlyLeft');
       return '';

@@ -69,7 +69,7 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     if (!confirmationResult) {
-      alert("No hay código pendiente");
+      alert("No se ha enviado ningún código. Por favor, solicita un código de verificación primero.");
       return;
     }
     setIsLoading(true);

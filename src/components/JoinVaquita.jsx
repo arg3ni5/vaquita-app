@@ -217,11 +217,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="vaquita-name"
-              className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1"
-            >
-              Nombre de la Vaquita
+            <label htmlFor="vaquita-name" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+              ID de la Vaquita
             </label>
             <input
               id="vaquita-name"
@@ -251,14 +248,13 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
 
         <button
           onClick={generateRandom}
-          className="w-full bg-slate-50 text-slate-600 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-all border border-slate-100 flex items-center justify-center gap-2"
-        >
+          className="w-full bg-slate-50 text-slate-600 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-all border border-slate-100 flex items-center justify-center gap-2">
           <Plus className="w-5 h-5" /> Generar código aleatorio
         </button>
 
         <p className="text-[10px] text-slate-400 mt-8 text-center leading-relaxed">
-          Las vaquitas son públicas si conoces el nombre. <br/>
-          Usa nombres únicos para mayor privacidad.
+          Las vaquitas son públicas si conoces el ID. <br />
+          Usa IDs únicos para mayor privacidad.
         </p>
       </div>
     </div>

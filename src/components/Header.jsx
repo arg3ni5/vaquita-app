@@ -15,7 +15,7 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
         setTimeout(() => setCopyFeedback(false), 2000);
       })
       .catch((err) => {
-        console.error('Failed to copy link:', err);
+        console.error('No se pudo copiar el enlace:', err);
         alert('No se pudo copiar el enlace. Por favor, inténtalo de nuevo.');
       });
   };

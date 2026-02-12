@@ -14,10 +14,10 @@ import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
 
 // Utility function to sanitize vaquita IDs
-const sanitizeVaquitaId = (id) => {
+export const sanitizeVaquitaId = (id) => {
   if (!id) return "";
-  const rawId = id.toString();
-  return rawId
+  return id
+    .toString()
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "-")

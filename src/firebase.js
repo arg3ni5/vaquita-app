@@ -7,6 +7,6 @@ const firebaseConfig = JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG || '{}');
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof globalThis.__app_id !== 'undefined' ? globalThis.__app_id : 'default-app-id';
+const appId = typeof import.meta.env.VITE_APP_ID !== 'undefined' ? import.meta.env.VITE_APP_ID : 'default-app-id';
 
 export { auth, db, appId };

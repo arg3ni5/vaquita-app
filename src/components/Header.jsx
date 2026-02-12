@@ -6,9 +6,16 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set("v", vaquitaId);
+    const validVaquitaId =
+      typeof vaquitaId === "string" && /^[a-zA-Z0-9_-]+$/.test(vaquitaId)
+        ? vaquitaId
+        : null;
 
+    const url = new URL(window.location.origin + window.location.pathname);
+
+    if (validVaquitaId !== null) {
+      url.searchParams.set("v", validVaquitaId);
+    }
     navigator.clipboard.writeText(url.toString()).then(() => {
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);

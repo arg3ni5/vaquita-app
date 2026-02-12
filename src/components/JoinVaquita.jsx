@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
 
+const MySwal = withReactContent(Swal);
 // Map Firebase auth error codes to user-friendly Spanish messages
 const AUTH_ERROR_MESSAGES = {
   // Google Sign-in errors
@@ -10,19 +13,19 @@ const AUTH_ERROR_MESSAGES = {
   'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
   'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
   'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
-  
+
   // Phone authentication errors
   'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
   'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
   'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
   'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
   'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
-  
+
   // OTP verification errors
   'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
   'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
   'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
-  
+
   // General errors
   'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
   'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
@@ -68,7 +71,11 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       await loginWithGoogle();
     } catch (error) {
-      alert(getAuthErrorMessage(error));
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error de inicio de sesión con Google',
+        text: getAuthErrorMessage(error)
+      });
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +88,11 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       const confirmation = await loginWithPhone(phone, 'recaptcha-container');
       setConfirmationResult(confirmation);
     } catch (error) {
-      alert(getAuthErrorMessage(error));
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error de inicio de sesión telefónico',
+        text: getAuthErrorMessage(error)
+      });
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +109,11 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       setShowPhoneLogin(false);
       setConfirmationResult(null);
     } catch (error) {
-      alert(getAuthErrorMessage(error));
+      MySwal.fire({
+        icon: 'error',
+        title: 'Error de verificación OTP',
+        text: getAuthErrorMessage(error)
+      });
     } finally {
       setIsLoading(false);
     }

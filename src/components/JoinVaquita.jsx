@@ -1,6 +1,53 @@
 import React, { useState } from 'react';
 import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
 
+// Utility function to get user-friendly error messages from Firebase auth errors
+const getAuthErrorMessage = (error) => {
+  const errorCode = error?.code || '';
+  const errorMessage = error?.message || '';
+
+  // Map Firebase auth error codes to user-friendly Spanish messages
+  const errorMap = {
+    // Google Sign-in errors
+    'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
+    'auth/popup-closed-by-user': 'Iniciaste sesión pero cerraste la ventana antes de completar el proceso.',
+    'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
+    'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
+    'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
+    'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
+    
+    // Phone authentication errors
+    'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +506 8888 8888).',
+    'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
+    'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
+    'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
+    'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
+    
+    // OTP verification errors
+    'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
+    'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
+    'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
+    
+    // General errors
+    'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+    'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
+    'auth/timeout': 'La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.'
+  };
+
+  // Return specific error message if available, otherwise return a generic message with error code
+  if (errorMap[errorCode]) {
+    return errorMap[errorCode];
+  }
+
+  // If we have an error code but no mapping, show it for debugging
+  if (errorCode) {
+    return `Error de autenticación (${errorCode}). Por favor, intenta nuevamente.`;
+  }
+
+  // Fallback to original error message or generic message
+  return errorMessage || 'Error desconocido. Por favor, intenta nuevamente.';
+};
+
 const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -20,8 +67,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     setIsLoading(true);
     try {
       await loginWithGoogle();
-    } catch {
-      alert("Error al iniciar sesión con Google");
+    } catch (error) {
+      alert(getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -33,8 +80,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
     try {
       const confirmation = await loginWithPhone(phone, 'recaptcha-container');
       setConfirmationResult(confirmation);
-    } catch {
-      alert("Error al enviar SMS. Verifica el número.");
+    } catch (error) {
+      alert(getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -47,8 +94,8 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
       await confirmationResult.confirm(otp);
       setShowPhoneLogin(false);
       setConfirmationResult(null);
-    } catch {
-      alert("Código incorrecto.");
+    } catch (error) {
+      alert(getAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

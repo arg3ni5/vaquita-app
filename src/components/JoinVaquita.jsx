@@ -43,7 +43,7 @@ const getAuthErrorMessage = (error) => {
     return `Error de autenticación (${errorCode}). Por favor, intenta nuevamente.`;
   }
 
-  // Fallback: log original error for diagnóstico y mostrar mensaje genérico al usuario
+  // Fallback: registrar error original para diagnóstico y mostrar mensaje genérico al usuario
   console.error('Firebase auth error (fallback):', error);
   return 'Error desconocido. Por favor, intenta nuevamente.';
 };

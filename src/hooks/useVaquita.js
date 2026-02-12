@@ -142,7 +142,7 @@ export const useVaquita = () => {
     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses', id));
   };
 
-  const resetAll = async () => {
+  const resetSession = async () => {
     if (!user || !vaquitaId) return;
     const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends');
     const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses');
@@ -212,7 +212,7 @@ export const useVaquita = () => {
     addExpense,
     updateExpense,
     removeExpense,
-    resetAll,
+    resetSession,
     totals
   };
 };

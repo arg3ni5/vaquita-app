@@ -39,7 +39,7 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
         <button
           onClick={onReset}
           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-          title="Limpiar todo"
+          title="Limpiar esta vaquita"
         >
           <RefreshCw className="w-5 h-5" />
         </button>

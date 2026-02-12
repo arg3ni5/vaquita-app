@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserPlus, Check, X, Edit2, Trash2 } from 'lucide-react';
 
-const FriendSection = ({ friends, onAdd, onUpdate, onRemove }) => {
+const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [friendName, setFriendName] = useState('');
   const [friendPhone, setFriendPhone] = useState('');
@@ -42,11 +42,29 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove }) => {
     setEditingId(null);
   };
 
+  const addMe = () => {
+    if (user && !user.isAnonymous) {
+      const myName = user.displayName || user.email?.split('@')[0] || "Yo";
+      const myPhone = user.phoneNumber || "";
+      onAdd(myName, myPhone);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-      <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-        <UserPlus className="w-4 h-4" /> 1. Amigos
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <UserPlus className="w-4 h-4" /> 1. Amigos
+        </h2>
+        {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
+          <button
+            onClick={addMe}
+            className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-100 transition-colors uppercase tracking-tighter border border-indigo-100"
+          >
+            + Soy Yo
+          </button>
+        )}
+      </div>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 mb-6">
         <input
           placeholder="Nombre"

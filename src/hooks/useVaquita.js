@@ -2,7 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   signInAnonymously,
   signInWithCustomToken,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  signOut
 } from 'firebase/auth';
 import {
   collection,
@@ -72,22 +77,38 @@ export const useVaquita = () => {
     };
   }, [user, vaquitaId]);
 
-  // CRUD Operations
-  const MAX_VAQUITA_ID_LENGTH = 100;
-
-  const selectVaquita = (id) => {
-    if (typeof id !== 'string') {
-      return;
+  // Auth Operations
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      throw error;
     }
+  };
 
-    // Normalize whitespace and case, then restrict to [a-z0-9-] and enforce max length
-    const normalizedId = id.trim().toLowerCase().replace(/\s+/g, '-');
-    const sanitizedId = normalizedId.replace(/[^a-z0-9-]/g, '').slice(0, MAX_VAQUITA_ID_LENGTH);
+  const loginWithPhone = async (phoneNumber, recaptchaContainerId) => {
+    try {
+      const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+        size: 'invisible'
+      });
+      return await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+    } catch (error) {
+      console.error("Phone Login Error:", error);
+      throw error;
+    }
+  };
 
-    if (sanitizedId) {
+  const logout = () => signOut(auth);
+
+  // CRUD Operations
+  const selectVaquita = (id) => {
+    const cleanId = id.trim().toLowerCase().replace(/\s+/g, '-');
+    if (cleanId) {
       setDataLoading(true);
-      setVaquitaId(sanitizedId);
-      localStorage.setItem('vaquitaId', sanitizedId);
+      setVaquitaId(cleanId);
+      localStorage.setItem('vaquitaId', cleanId);
     }
   };
 
@@ -151,7 +172,7 @@ export const useVaquita = () => {
     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses', id));
   };
 
-  const resetSession = async () => {
+  const resetAll = async () => {
     if (!user || !vaquitaId) return;
     const friendsRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'friends');
     const expensesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sessions', vaquitaId, 'expenses');
@@ -209,6 +230,9 @@ export const useVaquita = () => {
     vaquitaId,
     selectVaquita,
     leaveVaquita,
+    loginWithGoogle,
+    loginWithPhone,
+    logout,
     friends,
     expenses,
     loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
@@ -221,7 +245,7 @@ export const useVaquita = () => {
     addExpense,
     updateExpense,
     removeExpense,
-    resetSession,
+    resetAll,
     totals
   };
 };

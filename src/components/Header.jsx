@@ -6,20 +6,17 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
-    const validVaquitaId =
-      typeof vaquitaId === "string" && /^[a-zA-Z0-9_-]+$/.test(vaquitaId)
-        ? vaquitaId
-        : null;
-
     const url = new URL(window.location.href);
+    url.searchParams.set("v", vaquitaId);
 
-    if (validVaquitaId !== null) {
-      url.searchParams.set("v", validVaquitaId);
-    }
-    navigator.clipboard.writeText(url.toString()).then(() => {
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
-    });
+    navigator.clipboard.writeText(url.toString())
+      .then(() => {
+        setCopyFeedback(true);
+        setTimeout(() => setCopyFeedback(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Error al copiar al portapapeles:", err);
+      });
   };
   return (
     <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">

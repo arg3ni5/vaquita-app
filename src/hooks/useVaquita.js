@@ -157,7 +157,7 @@ export const useVaquita = () => {
 
     const url = new URL(window.location.href);
     url.searchParams.delete("v");
-    window.history.pushState({}, "", url.toString());
+    window.history.replaceState({}, "", url.toString());
   };
 
   const addFriend = async (name, phone) => {

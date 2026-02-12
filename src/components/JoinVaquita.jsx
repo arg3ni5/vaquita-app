@@ -1,42 +1,41 @@
 import React, { useState } from 'react';
 import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from 'lucide-react';
 
+// Map Firebase auth error codes to user-friendly Spanish messages
+const AUTH_ERROR_MESSAGES = {
+  // Google Sign-in errors
+  'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
+  'auth/popup-closed-by-user': 'Cerraste la ventana antes de completar el inicio de sesión.',
+  'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
+  'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
+  'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
+  'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
+  
+  // Phone authentication errors
+  'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
+  'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
+  'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
+  'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
+  'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
+  
+  // OTP verification errors
+  'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
+  'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
+  'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
+  
+  // General errors
+  'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+  'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
+  'auth/timeout': 'La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.'
+};
+
 // Utility function to get user-friendly error messages from Firebase auth errors
 const getAuthErrorMessage = (error) => {
   const errorCode = error?.code || '';
-  const errorMessage = error?.message || '';
-
-  // Map Firebase auth error codes to user-friendly Spanish messages
-  const errorMap = {
-    // Google Sign-in errors
-    'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.',
-    'auth/popup-closed-by-user': 'Cerraste la ventana antes de completar el inicio de sesión.',
-    'auth/cancelled-popup-request': 'Se canceló la solicitud de inicio de sesión.',
-    'auth/network-request-failed': 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
-    'auth/unauthorized-domain': 'Este dominio no está autorizado para autenticación.',
-    'auth/operation-not-allowed': 'Este método de autenticación no está habilitado.',
-    
-    // Phone authentication errors
-    'auth/invalid-phone-number': 'El número de teléfono no es válido. Usa el formato internacional (ej: +50688888888).',
-    'auth/missing-phone-number': 'Por favor, ingresa un número de teléfono.',
-    'auth/quota-exceeded': 'Se excedió el límite de mensajes SMS. Intenta más tarde.',
-    'auth/captcha-check-failed': 'Error de verificación reCAPTCHA. Recarga la página e intenta nuevamente.',
-    'auth/too-many-requests': 'Demasiados intentos. Por favor, espera un momento antes de intentar nuevamente.',
-    
-    // OTP verification errors
-    'auth/invalid-verification-code': 'El código ingresado es incorrecto. Verifica e intenta nuevamente.',
-    'auth/code-expired': 'El código ha expirado. Solicita un nuevo código.',
-    'auth/missing-verification-code': 'Por favor, ingresa el código de verificación.',
-    
-    // General errors
-    'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
-    'auth/internal-error': 'Error interno del servidor. Intenta nuevamente más tarde.',
-    'auth/timeout': 'La operación tardó demasiado. Verifica tu conexión e intenta nuevamente.'
-  };
 
   // Return specific error message if available, otherwise return a generic message with error code
-  if (errorMap[errorCode]) {
-    return errorMap[errorCode];
+  if (AUTH_ERROR_MESSAGES[errorCode]) {
+    return AUTH_ERROR_MESSAGES[errorCode];
   }
 
   // If we have an error code but no mapping, show it for debugging
@@ -44,8 +43,9 @@ const getAuthErrorMessage = (error) => {
     return `Error de autenticación (${errorCode}). Por favor, intenta nuevamente.`;
   }
 
-  // Fallback to original error message or generic message
-  return errorMessage || 'Error desconocido. Por favor, intenta nuevamente.';
+  // Fallback: log original error for diagnóstico y mostrar mensaje genérico al usuario
+  console.error('Firebase auth error (fallback):', error);
+  return 'Error desconocido. Por favor, intenta nuevamente.';
 };
 
 const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }) => {

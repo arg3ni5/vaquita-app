@@ -73,12 +73,21 @@ export const useVaquita = () => {
   }, [user, vaquitaId]);
 
   // CRUD Operations
+  const MAX_VAQUITA_ID_LENGTH = 100;
+
   const selectVaquita = (id) => {
-    const cleanId = id.trim().toLowerCase().replace(/\s+/g, '-');
-    if (cleanId) {
+    if (typeof id !== 'string') {
+      return;
+    }
+
+    // Normalize whitespace and case, then restrict to [a-z0-9-] and enforce max length
+    const normalizedId = id.trim().toLowerCase().replace(/\s+/g, '-');
+    const sanitizedId = normalizedId.replace(/[^a-z0-9-]/g, '').slice(0, MAX_VAQUITA_ID_LENGTH);
+
+    if (sanitizedId) {
       setDataLoading(true);
-      setVaquitaId(cleanId);
-      localStorage.setItem('vaquitaId', cleanId);
+      setVaquitaId(sanitizedId);
+      localStorage.setItem('vaquitaId', sanitizedId);
     }
   };
 

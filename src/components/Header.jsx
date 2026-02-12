@@ -11,7 +11,7 @@ const Header = ({ currency, setCurrency, onReset, vaquitaId, onLeave }) => {
         ? vaquitaId
         : null;
 
-    const url = new URL(window.location.origin + window.location.pathname);
+    const url = new URL(window.location.href);
 
     if (validVaquitaId !== null) {
       url.searchParams.set("v", validVaquitaId);

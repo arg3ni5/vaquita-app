@@ -33,7 +33,8 @@ const App = () => {
     logout,
     totals,
     title,
-    updateVaquitaInfo
+    updateVaquitaInfo,
+    toggleSettlementPaid
   } = useVaquita();
 
   const handleReset = async () => {
@@ -115,6 +116,7 @@ const App = () => {
               deleteHistoryItem={deleteHistoryItem}
               history={history}
               title={title}
+              toggleSettlementPaid={toggleSettlementPaid}
             />
           </div>
         </div>

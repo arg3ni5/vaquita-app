@@ -32,13 +32,7 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     }
   };
 
-  const downloadHistory = async (format) => {
-    // To download from history, we need a hidden temporary element or just rely on the data
-    // For simplicity, let's just show the summary in history and have export buttons there
-    // If we want to export the CURRENT one:
-    const elementId = "liquidation-card";
-    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
-
+  const handleExport = async (elementId, filename, format) => {
     if (format === 'image') {
       await exportAsImage(elementId, filename);
     } else {
@@ -46,12 +40,10 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     }
   };
 
-  const handleExport = async (elementId, filename, format) => {
-    if (format === 'image') {
-      await exportAsImage(elementId, filename);
-    } else {
-      await exportAsPDF(elementId, filename);
-    }
+  const downloadHistory = async (format) => {
+    const elementId = "liquidation-card";
+    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
+    await handleExport(elementId, filename, format);
   };
 
   const sendWhatsApp = (t) => {

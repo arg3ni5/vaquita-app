@@ -31,7 +31,8 @@ const fixColorsForExport = (clonedDoc) => {
           // Set the computed RGB value directly
           element.style[prop] = value;
         } catch {
-          // Ignore errors for invalid properties
+          // Intentionally ignore errors for invalid or unsupported CSS properties
+          // Some properties may not be settable or may cause exceptions in certain contexts
         }
       }
     });

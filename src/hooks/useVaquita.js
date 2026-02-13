@@ -154,16 +154,23 @@ export const useVaquita = () => {
     }
 
     const userVaquitasRef = collection(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions");
-    const unsub = onSnapshot(userVaquitasRef, (snapshot) => {
-      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Sort by lastVisited descending
-      list.sort((a, b) => {
-        const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
-        const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
-        return timeB - timeA;
-      });
-      setUserVaquitas(list);
-    });
+    const unsub = onSnapshot(
+      userVaquitasRef,
+      (snapshot) => {
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        // Sort by lastVisited descending
+        list.sort((a, b) => {
+          const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
+          const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
+          return timeB - timeA;
+        });
+        setUserVaquitas(list);
+      },
+      (error) => {
+        console.error("Error fetching user's vaquitas:", error);
+        setUserVaquitas([]);
+      },
+    );
 
     return () => unsub();
   }, [user]);
@@ -172,22 +179,31 @@ export const useVaquita = () => {
   useEffect(() => {
     if (!user || user.isAnonymous || !vaquitaId || friends.length === 0) return;
 
-    const isParticipant = friends.some(
-      (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
-    );
-
-    if (isParticipant) {
-      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
-      setDoc(
-        userVaquitaRef,
-        {
-          id: vaquitaId,
-          title: title || vaquitaId,
-          lastVisited: serverTimestamp(),
-        },
-        { merge: true },
+    const registerVaquitaSession = async () => {
+      const isParticipant = friends.some(
+        (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
       );
-    }
+
+      if (!isParticipant) return;
+
+      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
+
+      try {
+        const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+        await setDoc(
+          userVaquitaRef,
+          {
+            title: sessionTitle,
+            lastVisited: serverTimestamp(),
+          },
+          { merge: true },
+        );
+      } catch (error) {
+        console.error("Failed to register/update vaquita session:", error);
+      }
+    };
+
+    void registerVaquitaSession();
   }, [user, vaquitaId, friends, title]);
 
   // Auth Operations
@@ -275,11 +291,11 @@ export const useVaquita = () => {
       (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
     ) {
       const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
+      const sessionTitle = title ? sanitizeName(title) : vaquitaId;
       await setDoc(
         userVaquitaRef,
         {
-          id: vaquitaId,
-          title: title || vaquitaId,
+          title: sessionTitle,
           lastVisited: serverTimestamp(),
         },
         { merge: true },

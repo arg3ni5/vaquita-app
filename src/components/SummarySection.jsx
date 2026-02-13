@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
+import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText, Circle } from 'lucide-react';
 import { exportAsImage, exportAsPDF } from '../utils/exportUtils';
 import { showConfirm, showAlert } from '../utils/swal';
 import { ExportCard } from './ExportCard';

@@ -115,13 +115,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
             {isSaving ? 'Registrando...' : 'Registrar Pago'}
           </button>
         </form>
-      </div>
 
-      {/* Historial */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <History className="w-4 h-4" /> 3. Historial
-        </h2>
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {expenses.length === 0 ? (
             <p className="text-center text-slate-400 text-xs py-2 italic">No hay gastos registrados</p>

@@ -143,7 +143,7 @@ export const useVaquita = () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
-      unsubHistory();
+      //unsubHistory();
       setHistory([]);
       unsubSettlements();
     };

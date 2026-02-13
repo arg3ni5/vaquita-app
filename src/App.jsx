@@ -25,6 +25,9 @@ const App = () => {
     updateExpense,
     removeExpense,
     resetAll,
+    archiveVaquita,
+    deleteHistoryItem,
+    history,
     loginWithGoogle,
     loginWithPhone,
     logout,
@@ -108,6 +111,10 @@ const App = () => {
               friends={friends}
               currency={currency}
               vaquitaId={vaquitaId}
+              archiveVaquita={archiveVaquita}
+              deleteHistoryItem={deleteHistoryItem}
+              history={history}
+              title={title}
             />
           </div>
         </div>

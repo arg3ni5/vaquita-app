@@ -29,6 +29,7 @@ export const useVaquita = () => {
   });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [history, setHistory] = useState([]);
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
@@ -96,6 +97,7 @@ export const useVaquita = () => {
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
+    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
 
     const unsubFriends = onSnapshot(
       friendsRef,
@@ -121,10 +123,24 @@ export const useVaquita = () => {
       },
     );
 
+    const unsubHistory = onSnapshot(
+      historyRef,
+      (snapshot) => {
+        const historyList = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        setHistory(historyList);
+      },
+      (error) => {
+        console.error("Error loading history:", error);
+      },
+    );
+
     return () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
+      unsubHistory();
     };
   }, [user, vaquitaId]);
 
@@ -289,6 +305,35 @@ export const useVaquita = () => {
     for (const d of eDocs.docs) await deleteDoc(d.ref);
   };
 
+  const archiveVaquita = async () => {
+    if (!user || !vaquitaId || friends.length === 0) return;
+
+    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
+
+    await addDoc(historyRef, {
+      title: title || "Mi Vaquita",
+      currency,
+      total: totals.total,
+      average: totals.average,
+      friends: friends.map((f) => ({
+        name: f.name,
+        totalSpent: expenses
+          .filter((e) => e.friendId === f.id)
+          .reduce((sum, e) => sum + e.amount, 0),
+      })),
+      transactions: totals.transactions,
+      createdAt: Date.now(),
+    });
+
+    await resetAll();
+  };
+
+  const deleteHistoryItem = async (historyId) => {
+    if (!user || !vaquitaId || !historyId) return;
+    const historyDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history", historyId);
+    await deleteDoc(historyDoc);
+  };
+
   // Calculations
   const totals = useMemo(() => {
     if (friends.length === 0) return { total: 0, average: 0, transactions: [], balances: [] };
@@ -363,6 +408,9 @@ export const useVaquita = () => {
     updateExpense,
     removeExpense,
     resetAll,
+    archiveVaquita,
+    deleteHistoryItem,
+    history,
     totals,
   };
 };

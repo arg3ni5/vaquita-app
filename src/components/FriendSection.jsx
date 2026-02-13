@@ -56,7 +56,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-          <UserPlus className="w-4 h-4" /> 1. Amigos
+          <UserPlus className="w-4 h-4" /> Amigos
         </h2>
         <div className="flex items-center gap-2">
           {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
@@ -69,14 +69,14 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
           )}
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
-            className="lg:hidden text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
             aria-label={isFormVisible ? "Ocultar formulario de amigos" : "Mostrar formulario de amigos"}
           >
-            {isFormVisible ? 'Ocultar' : 'Amigos'}
+            {isFormVisible ? 'Ocultar' : 'Añadir'}
           </button>
         </div>
       </div>
-      <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? '' : 'hidden'} lg:flex`}>
+      <form onSubmit={handleSubmit} className={` flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? 'flex' : 'hidden'}`}>
         <input
           placeholder="Nombre"
           value={friendName}

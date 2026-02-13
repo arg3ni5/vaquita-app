@@ -9,7 +9,7 @@ import {
   signInWithPhoneNumber,
   signOut,
 } from "firebase/auth";
-import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc, serverTimestamp, runTransaction } from "firebase/firestore";
 import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
 import { sanitizeId, sanitizeName } from "../utils/sanitization";
@@ -205,6 +205,7 @@ export const useVaquita = () => {
     localStorage.removeItem("vaquitaId");
     setFriends([]);
     setExpenses([]);
+    setSettlements({});
 
     const url = new URL(window.location.href);
     url.searchParams.delete("v");
@@ -314,9 +315,13 @@ export const useVaquita = () => {
   const toggleSettlementPaid = async (fromId, toId) => {
     if (!user || !vaquitaId) return;
     const id = `${fromId}_${toId}`;
-    const isPaid = !!settlements[id];
     const settlementRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements", id);
-    await setDoc(settlementRef, { paid: !isPaid }, { merge: true });
+    
+    await runTransaction(db, async (transaction) => {
+      const settlementDoc = await transaction.get(settlementRef);
+      const currentPaid = settlementDoc.exists() ? settlementDoc.data().paid : false;
+      transaction.set(settlementRef, { paid: !currentPaid }, { merge: true });
+    });
   };
 
   // Calculations

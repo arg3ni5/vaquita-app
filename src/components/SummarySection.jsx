@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Circle, ArrowRight, MessageCircle } from 'lucide-react';
+import { showAlert } from '../utils/swal';
 
 const SummarySection = ({ totals, friends, currency, vaquitaId, title, toggleSettlementPaid }) => {
   const sendWhatsApp = (t) => {
@@ -71,7 +72,14 @@ ${link} Ver detalle: ${shareUrl.toString()}
                   <div className="flex flex-col items-end">
                     <span className="text-xl font-black text-slate-900">{currency}{t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                     <button
-                      onClick={() => toggleSettlementPaid(t.fromId, t.toId)}
+                      onClick={async () => {
+                        try {
+                          await toggleSettlementPaid(t.fromId, t.toId);
+                        } catch (error) {
+                          console.error('Error al actualizar el estado del pago:', error);
+                          await showAlert("Error", "No se pudo actualizar el estado del pago. Inténtalo de nuevo.", "error");
+                        }
+                      }}
                       className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider ${
                         t.paid
                           ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'

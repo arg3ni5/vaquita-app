@@ -51,8 +51,16 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
       await showAlert("Monto inválido", "Ingresa un monto válido mayor a 0.", "warning");
       return;
     }
-    onUpdate(editingId, editFriendId, editAmount, editDescription);
-    setEditingId(null);
+    setIsSaving(true);
+    try {
+      await onUpdate(editingId, editFriendId, editAmount, editDescription);
+      setEditingId(null);
+    } catch (error) {
+      console.error('Error al actualizar el gasto:', error);
+      await showAlert("Error", "No se pudo actualizar el gasto. Inténtalo de nuevo.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getFriendName = (id) => friends.find(f => f.id === id)?.name || '?';

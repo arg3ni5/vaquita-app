@@ -1,6 +1,43 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
+/**
+ * Converts OKLCH and other modern CSS color functions to RGB for html2canvas compatibility
+ */
+const fixColorsForExport = (clonedDoc) => {
+  // Get all elements in the cloned document
+  const allElements = clonedDoc.getElementsByTagName('*');
+  
+  for (let element of allElements) {
+    const computedStyle = window.getComputedStyle(element);
+    
+    // Fix colors that might use oklch or other unsupported formats
+    const propertiesToFix = [
+      'color',
+      'backgroundColor',
+      'borderColor',
+      'borderTopColor',
+      'borderRightColor',
+      'borderBottomColor',
+      'borderLeftColor',
+      'fill',
+      'stroke'
+    ];
+    
+    propertiesToFix.forEach(prop => {
+      const value = computedStyle[prop];
+      if (value && value !== 'none' && value !== 'transparent') {
+        try {
+          // Set the computed RGB value directly
+          element.style[prop] = value;
+        } catch {
+          // Ignore errors for invalid properties
+        }
+      }
+    });
+  }
+};
+
 export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => {
   const element = document.getElementById(elementId);
   if (!element) return false;
@@ -11,6 +48,9 @@ export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => 
       useCORS: true,
       backgroundColor: '#f8fafc', // slate-50
       logging: false,
+      onclone: (clonedDoc) => {
+        fixColorsForExport(clonedDoc);
+      },
     });
 
     const image = canvas.toDataURL('image/png');
@@ -35,6 +75,9 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
       useCORS: true,
       backgroundColor: '#f8fafc',
       logging: false,
+      onclone: (clonedDoc) => {
+        fixColorsForExport(clonedDoc);
+      },
     });
 
     const imgData = canvas.toDataURL('image/png');

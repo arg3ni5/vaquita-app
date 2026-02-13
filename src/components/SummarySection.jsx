@@ -46,6 +46,14 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     }
   };
 
+  const handleExport = async (elementId, filename, format) => {
+    if (format === 'image') {
+      await exportAsImage(elementId, filename);
+    } else {
+      await exportAsPDF(elementId, filename);
+    }
+  };
+
   const sendWhatsApp = (t) => {
     const shareUrl = new URL(window.location.href);
     shareUrl.searchParams.set("v", vaquitaId);

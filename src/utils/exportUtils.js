@@ -188,11 +188,12 @@ export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => 
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
-      backgroundColor: '#f8fafc', // slate-50
+      backgroundColor: '#ffffff', // Fondo sólido para evitar transparencias raras
       logging: false,
       onclone: (clonedDoc) => {
         fixColorsForExport(clonedDoc);
-      },
+        fixBorderColorsForExport(clonedDoc);
+      }
     });
 
     const image = canvas.toDataURL('image/png');
@@ -202,7 +203,7 @@ export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => 
     link.click();
     return true;
   } catch (error) {
-    console.error('Error exporting as image:', error);
+    console.error('Error exporting image:', error);
     return false;
   }
 };
@@ -215,8 +216,7 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
     const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
-      backgroundColor: '#f8fafc',
-      logging: false,
+      backgroundColor: '#ffffff',
       onclone: (clonedDoc) => {
         fixColorsForExport(clonedDoc);
       },
@@ -224,30 +224,18 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    const imgProps = pdf.getImageProperties(imgData);
     const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    let heightLeft = imgHeight;
-    let pageNumber = 0;
-
-    // Add first page
+    // Ajuste simple para que quepa en la página
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    // Add additional pages if the content is taller than one page
-    while (heightLeft > 0) {
-      pageNumber++;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, -pageHeight * pageNumber, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
     pdf.save(`${filename}.pdf`);
     return true;
   } catch (error) {
-    console.error('Error exporting as PDF:', error);
+    console.error('Error exporting PDF:', error);
     return false;
   }
 };

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
 import { exportAsImage, exportAsPDF } from '../utils/exportUtils';
 import { showConfirm, showAlert } from '../utils/swal';
+import { ExportCard } from './ExportCard';
 
 const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, deleteHistoryItem, history, title }) => {
   const [expandedHistory, setExpandedHistory] = useState(null);
@@ -40,10 +41,14 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     }
   };
 
+  const exportRef = useRef(null);
+
   const downloadHistory = async (format) => {
-    const elementId = "liquidation-card";
-    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
-    await handleExport(elementId, filename, format);
+    const elementId = "export-card";
+    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split("T")[0]}`;
+
+    if (format === "image") await exportAsImage(elementId, filename);
+    else await exportAsPDF(elementId, filename);
   };
 
   const sendWhatsApp = (t) => {
@@ -266,6 +271,20 @@ ${link} Ver detalle: ${shareUrl.toString()}
           </div>
         </div>
       )}
+
+      {/* Export view (oculto) */}
+      <div style={{ position: "fixed", left: "-10000px", top: 0 }}>
+        <div id="export-card">
+          <ExportCard
+            ref={exportRef}
+            title={title}
+            currency={currency}
+            totals={totals}
+            friendsCount={friends.length}
+            vaquitaId={vaquitaId}
+          />
+        </div>
+      </div>
     </div>
   );
 };

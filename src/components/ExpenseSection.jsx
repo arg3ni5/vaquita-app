@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Receipt, History, Edit2, Trash2, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Receipt, History, Edit2, Trash2, Check, X } from 'lucide-react';
 import { showAlert } from '../utils/swal';
 
 const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove }) => {
@@ -76,10 +76,9 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
           </h2>
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
-            className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors p-1"
-            aria-label={isFormVisible ? "Ocultar formulario" : "Mostrar formulario"}
+            className="lg:hidden text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            {isFormVisible ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {isFormVisible ? 'Ocultar' : 'Gastos'}
           </button>
         </div>
         <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? '' : 'hidden'} lg:grid`}>

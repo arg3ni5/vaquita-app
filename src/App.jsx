@@ -87,6 +87,21 @@ const App = () => {
           onLeave={leaveVaquita}
         />
 
+        {/* Summary Section - shown first on mobile, on right on desktop */}
+        <div className="lg:hidden mb-8">
+          <SummarySection
+            totals={totals}
+            friends={friends}
+            currency={currency}
+            vaquitaId={vaquitaId}
+            archiveVaquita={archiveVaquita}
+            deleteHistoryItem={deleteHistoryItem}
+            history={history}
+            title={title}
+            toggleSettlementPaid={toggleSettlementPaid}
+          />
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-5 space-y-6">
             <FriendSection
@@ -106,7 +121,7 @@ const App = () => {
             />
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="hidden lg:block lg:col-span-7">
             <SummarySection
               totals={totals}
               friends={friends}

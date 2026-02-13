@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Check, X, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { UserPlus, Check, X, Edit2, Trash2 } from 'lucide-react';
 import { showAlert } from '../utils/swal';
 
 const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
@@ -69,10 +69,9 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
           )}
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
-            className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors p-1"
-            aria-label={isFormVisible ? "Ocultar formulario" : "Mostrar formulario"}
+            className="lg:hidden text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
           >
-            {isFormVisible ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {isFormVisible ? 'Ocultar' : 'Amigos'}
           </button>
         </div>
       </div>

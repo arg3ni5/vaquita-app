@@ -50,7 +50,7 @@ const getAuthErrorMessage = (error) => {
   return "Error desconocido. Por favor, intenta nuevamente.";
 };
 
-const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }) => {
+const JoinVaquita = ({ onSelect, user, userVaquitas = [], loginWithGoogle, loginWithPhone, logout }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -214,6 +214,27 @@ const JoinVaquita = ({ onSelect, user, loginWithGoogle, loginWithPhone, logout }
             <span className="bg-white px-4 text-slate-400 font-bold tracking-widest">Ahora únete</span>
           </div>
         </div>
+
+        {user && !user.isAnonymous && userVaquitas.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Mis Vaquitas</h2>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {userVaquitas.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => onSelect(v.id)}
+                  className="w-full flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-slate-50 transition-all text-left group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-slate-700 truncate">{v.title}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{v.id}</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

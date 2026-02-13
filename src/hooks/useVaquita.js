@@ -35,6 +35,7 @@ export const useVaquita = () => {
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
+  const [userVaquitas, setUserVaquitas] = useState([]);
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -141,10 +142,53 @@ export const useVaquita = () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
-      setHistory([]);
       unsubSettlements();
     };
   }, [user, vaquitaId]);
+
+  // Fetch user's vaquitas
+  useEffect(() => {
+    if (!user || user.isAnonymous) {
+      setUserVaquitas([]);
+      return;
+    }
+
+    const userVaquitasRef = collection(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions");
+    const unsub = onSnapshot(userVaquitasRef, (snapshot) => {
+      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Sort by lastVisited descending
+      list.sort((a, b) => {
+        const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
+        const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
+        return timeB - timeA;
+      });
+      setUserVaquitas(list);
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  // Automatically register/update current vaquita if user is a participant
+  useEffect(() => {
+    if (!user || user.isAnonymous || !vaquitaId || friends.length === 0) return;
+
+    const isParticipant = friends.some(
+      (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
+    );
+
+    if (isParticipant) {
+      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
+      setDoc(
+        userVaquitaRef,
+        {
+          id: vaquitaId,
+          title: title || vaquitaId,
+          lastVisited: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+  }, [user, vaquitaId, friends, title]);
 
   // Auth Operations
   const loginWithGoogle = async () => {
@@ -213,14 +257,34 @@ export const useVaquita = () => {
     window.history.replaceState({}, "", url.toString());
   };
 
-  const addFriend = async (name, phone) => {
+  const addFriend = async (name, phone, friendUid = null) => {
     if (!name.trim() || !user || !vaquitaId) return;
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
-    await addDoc(friendsRef, {
+    const friendData = {
       name,
       phone: phone.replace(/\D/g, ""),
       createdAt: Date.now(),
-    });
+    };
+    if (friendUid) friendData.uid = friendUid;
+
+    await addDoc(friendsRef, friendData);
+
+    // Register if it's the current user
+    if (
+      !user.isAnonymous &&
+      (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
+    ) {
+      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
+      await setDoc(
+        userVaquitaRef,
+        {
+          id: vaquitaId,
+          title: title || vaquitaId,
+          lastVisited: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
   };
 
   const updateFriend = async (id, name, phone) => {
@@ -390,6 +454,7 @@ export const useVaquita = () => {
     expenses,
     loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
     user,
+    userVaquitas,
     currency,
     setCurrency: async (c) => {
       const previousCurrency = currency;

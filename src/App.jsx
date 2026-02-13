@@ -17,6 +17,7 @@ const App = () => {
     expenses,
     loading,
     user,
+    userVaquitas,
     currency,
     setCurrency,
     addFriend,
@@ -68,6 +69,7 @@ const App = () => {
       <JoinVaquita
         onSelect={selectVaquita}
         user={user}
+        userVaquitas={userVaquitas}
         loginWithGoogle={loginWithGoogle}
         loginWithPhone={loginWithPhone}
         logout={logout}

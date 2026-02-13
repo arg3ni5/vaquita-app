@@ -29,7 +29,6 @@ export const useVaquita = () => {
   });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [history, setHistory] = useState([]);
   const [settlements, setSettlements] = useState({});
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -98,7 +97,6 @@ export const useVaquita = () => {
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
-    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
     const settlementsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements");
 
     const unsubFriends = onSnapshot(
@@ -143,8 +141,6 @@ export const useVaquita = () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
-      unsubHistory();
-      setHistory([]);
       unsubSettlements();
     };
   }, [user, vaquitaId]);
@@ -320,50 +316,12 @@ export const useVaquita = () => {
     if (!user || !vaquitaId) return;
     const id = `${fromId}_${toId}`;
     const settlementRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements", id);
-    
+
     await runTransaction(db, async (transaction) => {
-      const settlementDoc = await transaction.get(settlementRef);
-      const currentPaid = settlementDoc.exists() ? settlementDoc.data().paid : false;
-      transaction.set(settlementRef, { paid: !currentPaid }, { merge: true });
+      const settDoc = await transaction.get(settlementRef);
+      const isPaid = settDoc.exists() ? settDoc.data().paid : false;
+      transaction.set(settlementRef, { paid: !isPaid }, { merge: true });
     });
-  };
-
-  const archiveVaquita = async () => {
-    if (!user || !vaquitaId || friends.length === 0) return;
-
-    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
-
-    // Create a lookup map for better performance
-    const friendsMap = Object.fromEntries(friends.map((f) => [f.id, f.name]));
-
-    await addDoc(historyRef, {
-      title: title || "Mi Vaquita",
-      currency,
-      total: totals.total,
-      average: totals.average,
-      friends: friends.map((f) => ({
-        name: f.name,
-        totalSpent: expenses
-          .filter((e) => e.friendId === f.id)
-          .reduce((sum, e) => sum + e.amount, 0),
-      })),
-      expenses: expenses.map((e) => ({
-        friendId: e.friendId,
-        friendName: friendsMap[e.friendId] || 'Unknown',
-        amount: e.amount,
-        createdAt: e.createdAt,
-      })),
-      transactions: totals.transactions,
-      createdAt: Date.now(),
-    });
-
-    await resetAll();
-  };
-
-  const deleteHistoryItem = async (historyId) => {
-    if (!user || !vaquitaId || !historyId) return;
-    const historyDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history", historyId);
-    await deleteDoc(historyDoc);
   };
 
   // Calculations
@@ -453,9 +411,6 @@ export const useVaquita = () => {
     updateExpense,
     removeExpense,
     resetAll,
-    archiveVaquita,
-    deleteHistoryItem,
-    history,
     toggleSettlementPaid,
     totals,
   };

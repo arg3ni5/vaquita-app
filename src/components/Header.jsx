@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings, RefreshCw, Cloud, LogOut, Share2, Check, Pencil } from "lucide-react";
+import { Settings, RefreshCw, LogOut, Share2, Check, Pencil } from "lucide-react";
 import MySwal from "../utils/swal";
 import logo from "../assets/vaquita-logo.png";
 
@@ -7,12 +7,53 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("v", vaquitaId);
-    navigator.clipboard.writeText(url.toString()).then(() => {
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
-    });
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", vaquitaId);
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard
+          .writeText(url.toString())
+          .then(() => {
+            setCopyFeedback(true);
+            setTimeout(() => setCopyFeedback(false), 2000);
+          })
+          .catch(() => {
+            MySwal.fire({
+              icon: "error",
+              title: "No se pudo copiar el enlace",
+              text: "Por favor, copia el enlace manualmente desde la barra de direcciones.",
+              customClass: {
+                popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
+                confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
+              },
+              buttonsStyling: false,
+            });
+          });
+      } else {
+        MySwal.fire({
+          icon: "warning",
+          title: "Copiado no disponible",
+          text: "La función de copiado automático no es compatible con este navegador.",
+          customClass: {
+            popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
+            confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
+          },
+          buttonsStyling: false,
+        });
+      }
+    } catch (e) {
+      MySwal.fire({
+        icon: "error",
+        title: "No se pudo generar el enlace",
+        text: "Intenta recargar la página e inténtalo nuevamente.",
+        customClass: {
+          popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
+          confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
+        },
+        buttonsStyling: false,
+      });
+    }
   };
 
   const editTitle = async () => {
@@ -22,6 +63,20 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
       inputValue: title,
       showCancelButton: true,
       confirmButtonText: "Guardar",
+      inputValidator: (value) => {
+        const trimmed = (value || "").trim();
+        if (!trimmed) {
+          return "El nombre no puede estar vacío";
+        }
+        if (trimmed.length > 100) {
+          return "El nombre no puede tener más de 100 caracteres";
+        }
+        // Check for potentially problematic characters
+        if (/[<>'"&]/.test(trimmed)) {
+          return "El nombre contiene caracteres no permitidos";
+        }
+        return null;
+      },
       customClass: {
         popup: "rounded-[2rem] border-none shadow-2xl bg-white",
         confirmButton: "bg-indigo-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm mx-2 mb-4",
@@ -29,7 +84,10 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
       },
       buttonsStyling: false,
     });
-    if (newTitle) await updateVaquitaInfo({ title: newTitle });
+    if (newTitle) {
+      const trimmed = newTitle.trim();
+      await updateVaquitaInfo({ title: trimmed });
+    }
   };
 
   return (

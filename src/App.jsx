@@ -89,7 +89,7 @@ const App = () => {
         />
 
         {/* Mobile Toggle Buttons */}
-        <div className="lg:hidden grid grid-cols-2 gap-3 mb-6">
+        <div className="lg:hidden grid grid-cols-2 gap-3 mb-4">
           <button
             onClick={() => setShowFriends(!showFriends)}
             className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${
@@ -110,7 +110,7 @@ const App = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-5 space-y-6">
             <div className={showFriends ? 'block' : 'hidden lg:block'}>
               <FriendSection

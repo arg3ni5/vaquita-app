@@ -224,14 +224,26 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
 
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
     const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    // Ajuste simple para que quepa en la página
+    let heightLeft = imgHeight;
+    let pageNumber = 0;
+
+    // Add first page
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add additional pages if the content is taller than one page
+    while (heightLeft > 0) {
+      pageNumber++;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, -pageHeight * pageNumber, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
     pdf.save(`${filename}.pdf`);
     return true;
   } catch (error) {

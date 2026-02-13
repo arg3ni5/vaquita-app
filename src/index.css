@@ -18,14 +18,25 @@
   }
 }
 
-/* Sobrescritura manual para el contenedor de exportación */
+/* Sobrescritura manual solo para contenedores de exportación */
 #liquidation-card, 
 [id^="history-item-"] {
   background-color: white !important;
   color: #1e293b !important; /* slate-800 */
 }
 
-/* Específicos para iconos y botones que usan oklab/oklch */
-.text-emerald-500 { color: #10b981 !important; }
-.text-indigo-600 { color: #4f46e5 !important; }
-.bg-indigo-600 { background-color: #4f46e5 !important; }
+/* Específicos para iconos y botones que usan oklab/oklch dentro de contenedores de exportación */
+#liquidation-card .text-emerald-500,
+[id^="history-item-"] .text-emerald-500 {
+  color: #10b981 !important;
+}
+
+#liquidation-card .text-indigo-600,
+[id^="history-item-"] .text-indigo-600 {
+  color: #4f46e5 !important;
+}
+
+#liquidation-card .bg-indigo-600,
+[id^="history-item-"] .bg-indigo-600 {
+  background-color: #4f46e5 !important;
+}

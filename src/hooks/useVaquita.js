@@ -311,6 +311,9 @@ export const useVaquita = () => {
 
     const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
 
+    // Create a lookup map for better performance
+    const friendsMap = Object.fromEntries(friends.map((f) => [f.id, f.name]));
+
     await addDoc(historyRef, {
       title: title || "Mi Vaquita",
       currency,
@@ -324,7 +327,7 @@ export const useVaquita = () => {
       })),
       expenses: expenses.map((e) => ({
         friendId: e.friendId,
-        friendName: friends.find((f) => f.id === e.friendId)?.name || 'Unknown',
+        friendName: friendsMap[e.friendId] || 'Unknown',
         amount: e.amount,
         createdAt: e.createdAt,
       })),

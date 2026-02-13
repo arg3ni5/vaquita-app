@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Check, X, Edit2, Trash2 } from 'lucide-react';
+import { UserPlus, Check, X, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { showAlert } from '../utils/swal';
 
 const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
@@ -9,6 +9,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,16 +58,25 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
         <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
           <UserPlus className="w-4 h-4" /> 1. Amigos
         </h2>
-        {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
+        <div className="flex items-center gap-2">
+          {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
+            <button
+              onClick={addMe}
+              className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-100 transition-colors uppercase tracking-tighter border border-indigo-100"
+            >
+              + Soy Yo
+            </button>
+          )}
           <button
-            onClick={addMe}
-            className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-100 transition-colors uppercase tracking-tighter border border-indigo-100"
+            onClick={() => setIsFormVisible(!isFormVisible)}
+            className="lg:hidden text-slate-600 hover:text-slate-900 transition-colors p-1"
+            aria-label={isFormVisible ? "Ocultar formulario" : "Mostrar formulario"}
           >
-            + Soy Yo
+            {isFormVisible ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
-        )}
+        </div>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 mb-6">
+      <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? 'block' : 'hidden lg:flex'}`}>
         <input
           placeholder="Nombre"
           value={friendName}

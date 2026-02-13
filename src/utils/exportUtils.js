@@ -45,17 +45,17 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
     const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
     let heightLeft = imgHeight;
-    let position = 0;
+    let pageNumber = 0;
 
     // Add first page
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
     heightLeft -= pageHeight;
 
     // Add additional pages if the content is taller than one page
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+      pageNumber++;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, -pageHeight * pageNumber, pdfWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 

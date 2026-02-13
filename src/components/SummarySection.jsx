@@ -36,8 +36,8 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     // To download from history, we need a hidden temporary element or just rely on the data
     // For simplicity, let's just show the summary in history and have export buttons there
     // If we want to export the CURRENT one:
-    const id = "liquidation-card";
-    const name = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
+    const elementId = "liquidation-card";
+    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
 
     if (format === 'image') {
       await exportAsImage(elementId, filename);

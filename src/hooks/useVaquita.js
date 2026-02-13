@@ -12,7 +12,7 @@ import {
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
-import { sanitizeId } from "../utils/sanitization";
+import { sanitizeId, sanitizeName } from "../utils/sanitization";
 
 export const useVaquita = () => {
   const [vaquitaId, setVaquitaId] = useState(() => {
@@ -257,9 +257,9 @@ export const useVaquita = () => {
       if (allowedFields.includes(key)) {
         // Validate and sanitize each field
         if (key === 'title' && typeof value === 'string') {
-          const trimmed = value.trim();
-          if (trimmed.length > 0 && trimmed.length <= 100) {
-            sanitizedUpdates[key] = trimmed;
+          const sanitized = sanitizeName(value);
+          if (sanitized.length > 0 && sanitized.length <= 100) {
+            sanitizedUpdates[key] = sanitized;
           }
         } else if (key === 'currency' && typeof value === 'string') {
           // Whitelist of allowed currencies

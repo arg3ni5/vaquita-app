@@ -85,8 +85,7 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
       buttonsStyling: false,
     });
     if (newTitle) {
-      const trimmed = newTitle.trim();
-      await updateVaquitaInfo({ title: trimmed });
+      await updateVaquitaInfo({ title: newTitle });
     }
   };
 

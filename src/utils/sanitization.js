@@ -15,6 +15,8 @@ export const sanitizeId = (id) => {
 
 /**
  * Sanitizes a name string to remove potentially problematic characters
+ * Note: This is designed for plain text contexts (URLs, WhatsApp messages).
+ * If rendering names as HTML, consider using a library like DOMPurify.
  * @param {string} name - The name to sanitize
  * @returns {string} - A sanitized name string
  */

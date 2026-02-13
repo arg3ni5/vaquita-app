@@ -9,6 +9,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,18 +56,27 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-          <UserPlus className="w-4 h-4" /> 1. Amigos
+          <UserPlus className="w-4 h-4" /> Amigos
         </h2>
-        {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
+        <div className="flex items-center gap-2">
+          {user && !user.isAnonymous && !friends.some(f => f.phone === user.phoneNumber?.replace(/\D/g, '')) && (
+            <button
+              onClick={addMe}
+              className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-100 transition-colors uppercase tracking-tighter border border-indigo-100"
+            >
+              + Soy Yo
+            </button>
+          )}
           <button
-            onClick={addMe}
-            className="text-[10px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-100 transition-colors uppercase tracking-tighter border border-indigo-100"
+            onClick={() => setIsFormVisible(!isFormVisible)}
+            className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            aria-label={isFormVisible ? "Ocultar formulario de amigos" : "Mostrar formulario de amigos"}
           >
-            + Soy Yo
+            {isFormVisible ? 'Ocultar' : 'Añadir'}
           </button>
-        )}
+        </div>
       </div>
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 mb-6">
+      <form onSubmit={handleSubmit} className={` flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? 'flex' : 'hidden'}`}>
         <input
           placeholder="Nombre"
           value={friendName}

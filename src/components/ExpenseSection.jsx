@@ -11,6 +11,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
   const [editFriendId, setEditFriendId] = useState('');
   const [editAmount, setEditAmount] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,10 +70,19 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     <div className="space-y-6">
       {/* Registro de Gastos */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <Receipt className="w-4 h-4" /> 2. Registrar Pago
-        </h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <Receipt className="w-4 h-4" />Pagos
+          </h2>
+          <button
+            onClick={() => setIsFormVisible(!isFormVisible)}
+            className="lg:hidden text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+            aria-label={isFormVisible ? "Ocultar formulario de gastos" : "Mostrar formulario de gastos"}
+          >
+            {isFormVisible ? 'Ocultar' : 'Añadir'}
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? '' : 'hidden'} lg:grid`}>
           <select
             value={selectedFriendId}
             onChange={(e) => setSelectedFriendId(e.target.value)}
@@ -105,13 +115,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
             {isSaving ? 'Registrando...' : 'Registrar Pago'}
           </button>
         </form>
-      </div>
 
-      {/* Historial */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <History className="w-4 h-4" /> 3. Historial
-        </h2>
         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {expenses.length === 0 ? (
             <p className="text-center text-slate-400 text-xs py-2 italic">No hay gastos registrados</p>

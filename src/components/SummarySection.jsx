@@ -1,7 +1,8 @@
 import React from 'react';
-import { CheckCircle2, ArrowRight, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Circle, ArrowRight, MessageCircle } from 'lucide-react';
+import { showAlert } from '../utils/swal';
 
-const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
+const SummarySection = ({ totals, friends, currency, vaquitaId, title, toggleSettlementPaid }) => {
   const sendWhatsApp = (t) => {
     const shareUrl = new URL(window.location.href);
     shareUrl.searchParams.set("v", vaquitaId);
@@ -9,11 +10,12 @@ const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
     // Use original names; encodeURIComponent below will safely encode special characters
     const fromName = t.from;
     const toName = t.to;
+    const toPhoneStr = t.toPhone ? ` (${t.toPhone})` : "";
 
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";
     const link = "\u{1F517}";
-    const message = `¡Hola ${fromName}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${toName}.
+    const message = `¡Hola ${fromName}! ${wave} Según las cuentas de la Vaquita ${title || cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${toName}${toPhoneStr}.
 
 ${link} Ver detalle: ${shareUrl.toString()}
 
@@ -66,8 +68,31 @@ ${link} Ver detalle: ${shareUrl.toString()}
                     <span className="font-bold text-slate-800 text-sm">{t.to}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-5">
-                  <span className="text-xl font-black text-slate-900">{currency}{t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-5">
+                  <div className="flex flex-col items-end">
+                    <span className="text-xl font-black text-slate-900">{currency}{t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await toggleSettlementPaid(t.fromId, t.toId);
+                        } catch (error) {
+                          console.error('Error al actualizar el estado del pago:', error);
+                          await showAlert("Error", "No se pudo actualizar el estado del pago. Inténtalo de nuevo.", "error");
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider ${
+                        t.paid
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                    >
+                      {t.paid ? (
+                        <><CheckCircle2 className="w-3 h-3" /> Pagado</>
+                      ) : (
+                        <><Circle className="w-3 h-3" /> Pendiente</>
+                      )}
+                    </button>
+                  </div>
                   {t.fromPhone && (
                     <button
                       onClick={() => sendWhatsApp(t)}

@@ -32,7 +32,7 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
           "warning"
         );
       }
-    } catch (e) {
+    } catch {
       showAlert(
         "No se pudo generar el enlace",
         "Intenta recargar la página e inténtalo nuevamente.",

@@ -75,7 +75,7 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
   };
 
   return (
-    <header className="overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 mb-8 shadow-sm">
+    <header className="overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 mb-5 shadow-sm">
 
       {/* SECCIÓN SUPERIOR: Branding e Info con Sombra hacia abajo */}
       <div className="relative z-10 bg-white p-5 md:p-8 shadow-[0_12px_20px_-10px_rgba(0,0,0,0.08)]">

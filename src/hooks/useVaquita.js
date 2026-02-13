@@ -141,6 +141,7 @@ export const useVaquita = () => {
       unsubFriends();
       unsubExpenses();
       unsubHistory();
+      setHistory([]);
     };
   }, [user, vaquitaId]);
 
@@ -320,6 +321,12 @@ export const useVaquita = () => {
         totalSpent: expenses
           .filter((e) => e.friendId === f.id)
           .reduce((sum, e) => sum + e.amount, 0),
+      })),
+      expenses: expenses.map((e) => ({
+        friendId: e.friendId,
+        friendName: friends.find((f) => f.id === e.friendId)?.name || 'Unknown',
+        amount: e.amount,
+        createdAt: e.createdAt,
       })),
       transactions: totals.transactions,
       createdAt: Date.now(),

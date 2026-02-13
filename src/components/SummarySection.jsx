@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Download, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
+import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
 import { exportAsImage, exportAsPDF } from '../utils/exportUtils';
 import { showConfirm, showAlert } from '../utils/swal';
 
@@ -18,12 +18,21 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     );
 
     if (result.isConfirmed) {
-      await archiveVaquita();
-      showAlert("Vaquita Cerrada", "Los datos han sido archivados en el historial.", "success");
+      try {
+        await archiveVaquita();
+        showAlert("Vaquita Cerrada", "Los datos han sido archivados en el historial.", "success");
+      } catch (error) {
+        console.error('Error al archivar la vaquita:', error);
+        showAlert(
+          "Error al cerrar la vaquita",
+          "Ocurrió un problema al archivar los datos. Por favor, inténtalo de nuevo.",
+          "error"
+        );
+      }
     }
   };
 
-  const downloadHistory = async (_h, format) => {
+  const downloadHistory = async (format) => {
     // To download from history, we need a hidden temporary element or just rely on the data
     // For simplicity, let's just show the summary in history and have export buttons there
     // If we want to export the CURRENT one:
@@ -87,14 +96,14 @@ ${link} Ver detalle: ${shareUrl.toString()}
             {totals.transactions.length > 0 && (
               <>
                 <button
-                  onClick={() => downloadHistory(null, 'image')}
+                  onClick={() => downloadHistory('image')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar Imagen"
                 >
                   <ImageIcon className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => downloadHistory(null, 'pdf')}
+                  onClick={() => downloadHistory('pdf')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar PDF"
                 >

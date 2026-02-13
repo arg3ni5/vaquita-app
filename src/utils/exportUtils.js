@@ -3,7 +3,7 @@ import { jsPDF } from 'jspdf';
 
 export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => {
   const element = document.getElementById(elementId);
-  if (!element) return;
+  if (!element) return false;
 
   try {
     const canvas = await html2canvas(element, {
@@ -27,7 +27,7 @@ export const exportAsImage = async (elementId, filename = 'resumen-vaquita') => 
 
 export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
   const element = document.getElementById(elementId);
-  if (!element) return;
+  if (!element) return false;
 
   try {
     const canvas = await html2canvas(element, {
@@ -41,9 +41,24 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add first page
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add additional pages if the content is taller than one page
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
     pdf.save(`${filename}.pdf`);
     return true;
   } catch (error) {

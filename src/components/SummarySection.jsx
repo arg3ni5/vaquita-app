@@ -23,17 +23,11 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     }
   };
 
-  const downloadHistory = async (_h, format) => {
-    // To download from history, we need a hidden temporary element or just rely on the data
-    // For simplicity, let's just show the summary in history and have export buttons there
-    // If we want to export the CURRENT one:
-    const id = "liquidation-card";
-    const name = `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`;
-
+  const handleExport = async (elementId, filename, format) => {
     if (format === 'image') {
-      await exportAsImage(id, name);
+      await exportAsImage(elementId, filename);
     } else {
-      await exportAsPDF(id, name);
+      await exportAsPDF(elementId, filename);
     }
   };
 
@@ -87,14 +81,14 @@ ${link} Ver detalle: ${shareUrl.toString()}
             {totals.transactions.length > 0 && (
               <>
                 <button
-                  onClick={() => downloadHistory(null, 'image')}
+                  onClick={() => handleExport("liquidation-card", `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`, 'image')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar Imagen"
                 >
                   <ImageIcon className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => downloadHistory(null, 'pdf')}
+                  onClick={() => handleExport("liquidation-card", `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`, 'pdf')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar PDF"
                 >
@@ -193,7 +187,7 @@ ${link} Ver detalle: ${shareUrl.toString()}
                 </div>
 
                 {expandedHistory === h.id && (
-                  <div className="p-4 border-t border-slate-100 bg-white space-y-4">
+                  <div id={`history-item-${h.id}`} className="p-4 border-t border-slate-100 bg-white space-y-4">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-slate-50 p-2 rounded-xl text-center">
                         <p className="text-[8px] font-bold text-slate-400 uppercase">Total</p>
@@ -216,6 +210,26 @@ ${link} Ver detalle: ${shareUrl.toString()}
                     </div>
 
                     <div className="flex items-center justify-end gap-2 pt-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExport(`history-item-${h.id}`, `vaquita-historial-${h.title}-${new Date(h.createdAt).toISOString().split('T')[0]}`, 'image');
+                        }}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
+                        title="Exportar Imagen"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExport(`history-item-${h.id}`, `vaquita-historial-${h.title}-${new Date(h.createdAt).toISOString().split('T')[0]}`, 'pdf');
+                        }}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
+                        title="Exportar PDF"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();

@@ -70,6 +70,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
             className="lg:hidden text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            aria-label={isFormVisible ? "Ocultar formulario de amigos" : "Mostrar formulario de amigos"}
           >
             {isFormVisible ? 'Ocultar' : 'Amigos'}
           </button>

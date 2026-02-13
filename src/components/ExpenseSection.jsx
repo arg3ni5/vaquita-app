@@ -77,6 +77,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
             className="lg:hidden text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+            aria-label={isFormVisible ? "Ocultar formulario de gastos" : "Mostrar formulario de gastos"}
           >
             {isFormVisible ? 'Ocultar' : 'Gastos'}
           </button>

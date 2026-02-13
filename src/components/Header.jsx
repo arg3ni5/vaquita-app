@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Settings, RefreshCw, LogOut, Share2, Check, Pencil } from "lucide-react";
-import MySwal from "../utils/swal";
+import MySwal, { showAlert } from "../utils/swal";
 import logo from "../assets/vaquita-logo.png";
 
 const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaquitaId, onLeave }) => {
@@ -19,40 +19,25 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
             setTimeout(() => setCopyFeedback(false), 2000);
           })
           .catch(() => {
-            MySwal.fire({
-              icon: "error",
-              title: "No se pudo copiar el enlace",
-              text: "Por favor, copia el enlace manualmente desde la barra de direcciones.",
-              customClass: {
-                popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
-                confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
-              },
-              buttonsStyling: false,
-            });
+            showAlert(
+              "No se pudo copiar el enlace",
+              "Por favor, copia el enlace manualmente desde la barra de direcciones.",
+              "error"
+            );
           });
       } else {
-        MySwal.fire({
-          icon: "warning",
-          title: "Copiado no disponible",
-          text: "La función de copiado automático no es compatible con este navegador.",
-          customClass: {
-            popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
-            confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
-          },
-          buttonsStyling: false,
-        });
+        showAlert(
+          "Copiado no disponible",
+          "La función de copiado automático no es compatible con este navegador.",
+          "warning"
+        );
       }
     } catch (e) {
-      MySwal.fire({
-        icon: "error",
-        title: "No se pudo generar el enlace",
-        text: "Intenta recargar la página e inténtalo nuevamente.",
-        customClass: {
-          popup: "rounded-3xl shadow-xl border border-slate-100 bg-white p-6",
-          confirmButton: "bg-[#5138ed] text-white px-5 py-2.5 rounded-xl font-bold text-xs",
-        },
-        buttonsStyling: false,
-      });
+      showAlert(
+        "No se pudo generar el enlace",
+        "Intenta recargar la página e inténtalo nuevamente.",
+        "error"
+      );
     }
   };
 

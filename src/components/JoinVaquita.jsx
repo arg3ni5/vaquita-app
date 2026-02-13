@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from "lucide-react";
+import { ArrowRight, Plus, Phone, Mail, Check, LogOut, Loader2 } from "lucide-react";
 import { showAlert } from "../utils/swal";
 import logo from "../assets/vaquita-logo.png";
 

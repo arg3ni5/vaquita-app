@@ -1,4 +1,5 @@
-import { Cloud } from 'lucide-react';
+import { useState } from 'react';
+import { Cloud, ListFilter, PlusCircle } from 'lucide-react';
 import { useVaquita } from './hooks/useVaquita';
 import { showConfirm } from './utils/swal';
 import Header from './components/Header';
@@ -33,6 +34,8 @@ const App = () => {
     updateVaquitaInfo,
     toggleSettlementPaid
   } = useVaquita();
+
+  const [showForms, setShowForms] = useState(false);
 
   const handleReset = async () => {
     const result = await showConfirm('¿Estás seguro?', '¿Borrar TODOS los datos de la nube definitivamente?');
@@ -84,8 +87,22 @@ const App = () => {
           onLeave={leaveVaquita}
         />
 
+        {/* Mobile Toggle Button */}
+        <div className="lg:hidden mb-6">
+          <button
+            onClick={() => setShowForms(!showForms)}
+            className="w-full bg-white border border-slate-200 text-slate-700 py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-3 active:scale-95 transition-all text-sm uppercase tracking-widest"
+          >
+            {showForms ? (
+              <><ListFilter className="w-5 h-5 text-indigo-500" /> Ver Resumen</>
+            ) : (
+              <><PlusCircle className="w-5 h-5 text-indigo-500" /> Amigos y Gastos</>
+            )}
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-5 space-y-6">
+          <div className={`lg:col-span-5 space-y-6 ${showForms ? 'block' : 'hidden lg:block'}`}>
             <FriendSection
               friends={friends}
               onAdd={addFriend}

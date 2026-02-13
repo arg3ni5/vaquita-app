@@ -203,7 +203,7 @@ export const useVaquita = () => {
       }
     };
 
-    void registerVaquitaSession();
+    registerVaquitaSession();
   }, [user, vaquitaId, friends, title]);
 
   // Auth Operations

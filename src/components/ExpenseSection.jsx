@@ -82,7 +82,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
             {isFormVisible ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
         </div>
-        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? 'grid' : 'hidden'} lg:grid`}>
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? '' : 'hidden'} lg:grid`}>
           <select
             value={selectedFriendId}
             onChange={(e) => setSelectedFriendId(e.target.value)}

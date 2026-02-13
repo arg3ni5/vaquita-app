@@ -76,7 +76,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
           </button>
         </div>
       </div>
-      <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? 'flex' : 'hidden'} lg:flex`}>
+      <form onSubmit={handleSubmit} className={`flex flex-col sm:flex-row gap-2 mb-6 ${isFormVisible ? '' : 'hidden'} lg:flex`}>
         <input
           placeholder="Nombre"
           value={friendName}

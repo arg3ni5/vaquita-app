@@ -32,7 +32,7 @@ export const showConfirm = async (title, text, icon = 'warning') => {
     cancelButtonText: 'Cancelar',
     customClass: commonClasses,
     buttonsStyling: false,
-    // ... resto de tu configuración
+    showClass: { popup: 'animate__animated animate__zoomIn animate__faster' }
   });
 };
 

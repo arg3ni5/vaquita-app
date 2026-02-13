@@ -1,18 +1,44 @@
 import React, { useState } from "react";
-import { Settings, RefreshCw, Cloud, LogOut, Share2, Check, Pencil } from "lucide-react";
-import MySwal from "../utils/swal";
+import { Settings, RefreshCw, LogOut, Share2, Check, Pencil } from "lucide-react";
+import MySwal, { showAlert } from "../utils/swal";
 import logo from "../assets/vaquita-logo.png";
 
 const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaquitaId, onLeave }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
 
   const copyLink = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("v", vaquitaId);
-    navigator.clipboard.writeText(url.toString()).then(() => {
-      setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
-    });
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", vaquitaId);
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        navigator.clipboard
+          .writeText(url.toString())
+          .then(() => {
+            setCopyFeedback(true);
+            setTimeout(() => setCopyFeedback(false), 2000);
+          })
+          .catch(() => {
+            showAlert(
+              "No se pudo copiar el enlace",
+              "Por favor, copia el enlace manualmente desde la barra de direcciones.",
+              "error"
+            );
+          });
+      } else {
+        showAlert(
+          "Copiado no disponible",
+          "La función de copiado automático no es compatible con este navegador.",
+          "warning"
+        );
+      }
+    } catch (e) {
+      showAlert(
+        "No se pudo generar el enlace",
+        "Intenta recargar la página e inténtalo nuevamente.",
+        "error"
+      );
+    }
   };
 
   const editTitle = async () => {
@@ -22,6 +48,20 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
       inputValue: title,
       showCancelButton: true,
       confirmButtonText: "Guardar",
+      inputValidator: (value) => {
+        const trimmed = (value || "").trim();
+        if (!trimmed) {
+          return "El nombre no puede estar vacío";
+        }
+        if (trimmed.length > 100) {
+          return "El nombre no puede tener más de 100 caracteres";
+        }
+        // Check for potentially problematic characters
+        if (/[<>'"&]/.test(trimmed)) {
+          return "El nombre contiene caracteres no permitidos";
+        }
+        return null;
+      },
       customClass: {
         popup: "rounded-[2rem] border-none shadow-2xl bg-white",
         confirmButton: "bg-indigo-600 text-white px-8 py-3.5 rounded-2xl font-bold text-sm mx-2 mb-4",
@@ -29,7 +69,9 @@ const Header = ({ title, updateVaquitaInfo, currency, setCurrency, onReset, vaqu
       },
       buttonsStyling: false,
     });
-    if (newTitle) await updateVaquitaInfo({ title: newTitle });
+    if (newTitle) {
+      await updateVaquitaInfo({ title: newTitle });
+    }
   };
 
   return (

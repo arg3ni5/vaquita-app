@@ -9,19 +9,10 @@ import {
   signInWithPhoneNumber,
   signOut,
 } from "firebase/auth";
-import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
-
-const sanitizeId = (id) => {
-  return (id ?? "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .slice(0, 100);
-};
+import { sanitizeId, sanitizeName } from "../utils/sanitization";
 
 export const useVaquita = () => {
   const [vaquitaId, setVaquitaId] = useState(() => {
@@ -43,6 +34,28 @@ export const useVaquita = () => {
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
+
+  // Watch for URL parameter changes
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get("v");
+      if (urlId) {
+        const cleanId = sanitizeId(urlId);
+        if (cleanId && cleanId !== vaquitaId) {
+          localStorage.setItem("vaquitaId", cleanId);
+          setVaquitaId(cleanId);
+        }
+      }
+    };
+
+    // Listen for popstate events (browser back/forward)
+    window.addEventListener("popstate", handleUrlChange);
+    
+    return () => {
+      window.removeEventListener("popstate", handleUrlChange);
+    };
+  }, [vaquitaId]);
 
   // Auth Initialization
   useEffect(() => {
@@ -77,7 +90,7 @@ export const useVaquita = () => {
         if (data.title) setTitle(data.title);
       } else {
         // Initialize metadata if it doesn't exist
-        setDoc(sessionRef, { title: vaquitaId, currency: "¢", createdAt: Date.now() }, { merge: true });
+        setDoc(sessionRef, { title: vaquitaId, currency: "¢", createdAt: serverTimestamp() }, { merge: true });
       }
     });
 
@@ -235,8 +248,33 @@ export const useVaquita = () => {
 
   const updateVaquitaInfo = async (updates) => {
     if (!user || !vaquitaId) return;
-    const sessionRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId);
-    await setDoc(sessionRef, updates, { merge: true });
+    
+    // Whitelist of allowed fields
+    const allowedFields = ['title', 'currency'];
+    const sanitizedUpdates = {};
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        // Validate and sanitize each field
+        if (key === 'title' && typeof value === 'string') {
+          const sanitized = sanitizeName(value);
+          if (sanitized.length > 0 && sanitized.length <= 100) {
+            sanitizedUpdates[key] = sanitized;
+          }
+        } else if (key === 'currency' && typeof value === 'string') {
+          // Whitelist of allowed currencies
+          const allowedCurrencies = ['$', '€', '¢', 'S/', 'Bs.'];
+          if (allowedCurrencies.includes(value)) {
+            sanitizedUpdates[key] = value;
+          }
+        }
+      }
+    }
+    
+    if (Object.keys(sanitizedUpdates).length > 0) {
+      const sessionRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId);
+      await setDoc(sessionRef, sanitizedUpdates, { merge: true });
+    }
   };
 
   const resetAll = async () => {
@@ -304,7 +342,18 @@ export const useVaquita = () => {
     loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
     user,
     currency,
-    setCurrency: (c) => updateVaquitaInfo({ currency: c }),
+    setCurrency: async (c) => {
+      const previousCurrency = currency;
+      try {
+        // Optimistic local update
+        setInternalCurrency(c);
+        await updateVaquitaInfo({ currency: c });
+      } catch (error) {
+        // Roll back on error
+        setInternalCurrency(previousCurrency);
+        console.error("Failed to update currency:", error);
+      }
+    },
     title,
     updateVaquitaInfo,
     addFriend,

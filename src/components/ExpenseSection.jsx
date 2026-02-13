@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Receipt, History, Edit2, Trash2, Check, X } from 'lucide-react';
+import { showAlert } from '../utils/swal';
 
 const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -13,11 +14,11 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     e.preventDefault();
     const amount = parseFloat(expenseAmount);
     if (!selectedFriendId) {
-      alert("Selecciona quién pagó.");
+      await showAlert("Campo requerido", "Selecciona quién pagó.", "warning");
       return;
     }
     if (isNaN(amount) || amount <= 0) {
-      alert("Ingresa un monto válido mayor a 0.");
+      await showAlert("Monto inválido", "Ingresa un monto válido mayor a 0.", "warning");
       return;
     }
     setIsSaving(true);
@@ -36,14 +37,14 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     setEditAmount(expense.amount);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const amount = parseFloat(editAmount);
     if (!editFriendId) {
-      alert("Selecciona un amigo.");
+      await showAlert("Campo requerido", "Selecciona un amigo.", "warning");
       return;
     }
     if (isNaN(amount) || amount <= 0) {
-      alert("Ingresa un monto válido mayor a 0.");
+      await showAlert("Monto inválido", "Ingresa un monto válido mayor a 0.", "warning");
       return;
     }
     onUpdate(editingId, editFriendId, editAmount);

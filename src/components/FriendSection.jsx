@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus, Check, X, Edit2, Trash2 } from 'lucide-react';
+import { showAlert } from '../utils/swal';
 
 const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
   const [isSaving, setIsSaving] = useState(false);
@@ -13,7 +14,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     e.preventDefault();
     const trimmedName = friendName.trim();
     if (!trimmedName) {
-      alert("Por favor ingresa un nombre.");
+      await showAlert("Campo requerido", "Por favor ingresa un nombre.", "warning");
       return;
     }
     setIsSaving(true);
@@ -32,10 +33,10 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     setEditPhone(friend.phone);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const trimmedName = editName.trim();
     if (!trimmedName) {
-      alert("El nombre no puede estar vacío.");
+      await showAlert("Campo requerido", "El nombre no puede estar vacío.", "warning");
       return;
     }
     onUpdate(editingId, trimmedName, editPhone);

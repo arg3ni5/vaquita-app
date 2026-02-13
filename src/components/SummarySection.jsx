@@ -6,10 +6,14 @@ const SummarySection = ({ totals, friends, currency, vaquitaId }) => {
     const shareUrl = new URL(window.location.href);
     shareUrl.searchParams.set("v", vaquitaId);
 
+    // Use original names; encodeURIComponent below will safely encode special characters
+    const fromName = t.from;
+    const toName = t.to;
+
     const wave = "\u{1F44B}";
     const cow = "\u{1F404}";
     const link = "\u{1F517}";
-    const message = `¡Hola ${t.from}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${t.to}.
+    const message = `¡Hola ${fromName}! ${wave} Según las cuentas de la Vaquita ${cow}, te toca pagar ${currency}${t.amount.toFixed(2)} a ${toName}.
 
 ${link} Ver detalle: ${shareUrl.toString()}
 

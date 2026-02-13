@@ -26,9 +26,6 @@ const App = () => {
     updateExpense,
     removeExpense,
     resetAll,
-    archiveVaquita,
-    deleteHistoryItem,
-    history,
     loginWithGoogle,
     loginWithPhone,
     logout,
@@ -38,7 +35,8 @@ const App = () => {
     toggleSettlementPaid
   } = useVaquita();
 
-  const [showForms, setShowForms] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showExpenses, setShowExpenses] = useState(false);
 
   const handleReset = async () => {
     const result = await showConfirm('¿Estás seguro?', '¿Borrar TODOS los datos de la nube definitivamente?');
@@ -90,37 +88,49 @@ const App = () => {
           onLeave={leaveVaquita}
         />
 
-        {/* Mobile Toggle Button */}
-        <div className="lg:hidden mb-6">
+        {/* Mobile Toggle Buttons */}
+        <div className="lg:hidden grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={() => setShowForms(!showForms)}
-            className="w-full bg-white border border-slate-200 text-slate-700 py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-3 active:scale-95 transition-all text-sm uppercase tracking-widest"
+            onClick={() => setShowFriends(!showFriends)}
+            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${
+              showFriends ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
+            }`}
           >
-            {showForms ? (
-              <><ListFilter className="w-5 h-5 text-indigo-500" /> Ver Resumen</>
-            ) : (
-              <><PlusCircle className="w-5 h-5 text-indigo-500" /> Amigos y Gastos</>
-            )}
+            <PlusCircle className={`w-4 h-4 ${showFriends ? 'text-white' : 'text-indigo-500'}`} />
+            {showFriends ? 'Ocultar Amigos' : 'Amigos'}
+          </button>
+          <button
+            onClick={() => setShowExpenses(!showExpenses)}
+            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${
+              showExpenses ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
+            }`}
+          >
+            <ListFilter className={`w-4 h-4 ${showExpenses ? 'text-white' : 'text-indigo-500'}`} />
+            {showExpenses ? 'Ocultar Gastos' : 'Gastos'}
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className={`lg:col-span-5 space-y-6 ${showForms ? 'block' : 'hidden lg:block'}`}>
-            <FriendSection
-              friends={friends}
-              onAdd={addFriend}
-              onUpdate={updateFriend}
-              onRemove={handleRemoveFriend}
-              user={user}
-            />
-            <ExpenseSection
-              expenses={expenses}
-              friends={friends}
-              currency={currency}
-              onAdd={addExpense}
-              onUpdate={updateExpense}
-              onRemove={removeExpense}
-            />
+          <div className="lg:col-span-5 space-y-6">
+            <div className={showFriends ? 'block' : 'hidden lg:block'}>
+              <FriendSection
+                friends={friends}
+                onAdd={addFriend}
+                onUpdate={updateFriend}
+                onRemove={handleRemoveFriend}
+                user={user}
+              />
+            </div>
+            <div className={showExpenses ? 'block' : 'hidden lg:block'}>
+              <ExpenseSection
+                expenses={expenses}
+                friends={friends}
+                currency={currency}
+                onAdd={addExpense}
+                onUpdate={updateExpense}
+                onRemove={removeExpense}
+              />
+            </div>
           </div>
 
           <div className="lg:col-span-7">
@@ -129,9 +139,6 @@ const App = () => {
               friends={friends}
               currency={currency}
               vaquitaId={vaquitaId}
-              archiveVaquita={archiveVaquita}
-              deleteHistoryItem={deleteHistoryItem}
-              history={history}
               title={title}
               toggleSettlementPaid={toggleSettlementPaid}
             />

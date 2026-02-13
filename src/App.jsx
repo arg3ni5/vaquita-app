@@ -91,22 +91,20 @@ const App = () => {
         {/* Mobile Toggle Buttons */}
         <div className="lg:hidden grid grid-cols-2 gap-3 mb-4">
           <button
-            onClick={() => setShowFriends(!showFriends)}
-            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${
-              showFriends ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
-            }`}
+            onClick={() => { setShowFriends(!showFriends); if (showExpenses) setShowExpenses(false); }}
+            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${showFriends ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
+              }`}
           >
             <PlusCircle className={`w-4 h-4 ${showFriends ? 'text-white' : 'text-indigo-500'}`} />
-            {showFriends ? 'Ocultar Amigos' : 'Amigos'}
+            Amigos
           </button>
           <button
-            onClick={() => setShowExpenses(!showExpenses)}
-            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${
-              showExpenses ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
-            }`}
+            onClick={() => { setShowExpenses(!showExpenses); if (showFriends) setShowFriends(false); }}
+            className={`py-4 rounded-[2rem] font-black shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all text-[10px] uppercase tracking-widest border ${showExpenses ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200'
+              }`}
           >
             <ListFilter className={`w-4 h-4 ${showExpenses ? 'text-white' : 'text-indigo-500'}`} />
-            {showExpenses ? 'Ocultar Gastos' : 'Gastos'}
+            Gastos
           </button>
         </div>
 

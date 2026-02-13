@@ -1,4 +1,3 @@
-import React from 'react';
 import { Cloud } from 'lucide-react';
 import { useVaquita } from './hooks/useVaquita';
 import { showConfirm } from './utils/swal';

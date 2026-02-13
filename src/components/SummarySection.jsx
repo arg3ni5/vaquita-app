@@ -76,8 +76,8 @@ ${link} Ver detalle: ${shareUrl.toString()}
                         try {
                           await toggleSettlementPaid(t.fromId, t.toId);
                         } catch (error) {
-                          console.error('Error toggling settlement:', error);
-                          await showAlert("Error", "No se pudo actualizar el estado del pago.", "error");
+                          console.error('Error al actualizar el estado del pago:', error);
+                          await showAlert("Error", "No se pudo actualizar el estado del pago. Inténtalo de nuevo.", "error");
                         }
                       }}
                       className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider ${

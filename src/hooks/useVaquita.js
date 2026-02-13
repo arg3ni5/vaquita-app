@@ -316,11 +316,11 @@ export const useVaquita = () => {
     if (!user || !vaquitaId) return;
     const id = `${fromId}_${toId}`;
     const settlementRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements", id);
-
+    
     await runTransaction(db, async (transaction) => {
-      const settDoc = await transaction.get(settlementRef);
-      const isPaid = settDoc.exists() ? settDoc.data().paid : false;
-      transaction.set(settlementRef, { paid: !isPaid }, { merge: true });
+      const settlementDoc = await transaction.get(settlementRef);
+      const currentPaid = settlementDoc.exists() ? settlementDoc.data().paid : false;
+      transaction.set(settlementRef, { paid: !currentPaid }, { merge: true });
     });
   };
 

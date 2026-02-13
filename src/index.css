@@ -10,3 +10,22 @@
 .swal2-success-line-tip, .swal2-success-line-long {
   background-color: #5138ed !important;
 }
+
+@layer base {
+  :root {
+    /* Forzamos a Tailwind v4 a usar variables compatibles con herramientas antiguas */
+    color-scheme: light;
+  }
+}
+
+/* Sobrescritura manual para el contenedor de exportación */
+#liquidation-card, 
+[id^="history-item-"] {
+  background-color: white !important;
+  color: #1e293b !important; /* slate-800 */
+}
+
+/* Específicos para iconos y botones que usan oklab/oklch */
+.text-emerald-500 { color: #10b981 !important; }
+.text-indigo-600 { color: #4f46e5 !important; }
+.bg-indigo-600 { background-color: #4f46e5 !important; }

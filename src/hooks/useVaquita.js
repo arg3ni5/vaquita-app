@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   signInAnonymously,
   signInWithCustomToken,
@@ -36,6 +36,7 @@ export const useVaquita = () => {
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
   const [userVaquitas, setUserVaquitas] = useState([]);
+  const lastRegisteredRef = useRef({ vaquitaId: "", title: "" });
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -154,23 +155,36 @@ export const useVaquita = () => {
     }
 
     const userVaquitasRef = collection(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions");
-    const unsub = onSnapshot(userVaquitasRef, (snapshot) => {
-      const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Sort by lastVisited descending
-      list.sort((a, b) => {
-        const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
-        const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
-        return timeB - timeA;
-      });
-      setUserVaquitas(list);
-    });
+    const unsub = onSnapshot(
+      userVaquitasRef,
+      (snapshot) => {
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        // Sort by lastVisited descending
+        list.sort((a, b) => {
+          const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
+          const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
+          return timeB - timeA;
+        });
+        setUserVaquitas(list);
+      },
+      (error) => {
+        console.error("Error fetching user's vaquitas:", error);
+        setUserVaquitas([]);
+      },
+    );
 
     return () => unsub();
   }, [user]);
 
-  // Automatically register/update current vaquita if user is a participant
-  useEffect(() => {
-    if (!user || user.isAnonymous || !vaquitaId || friends.length === 0) return;
+  const registerUserSession = useCallback(async () => {
+    if (!user || user.isAnonymous || !vaquitaId) return;
+
+    const sanitizedTitle = (title && sanitizeName(title)) || vaquitaId;
+
+    // Check if we already registered this exact state to avoid redundant writes
+    if (lastRegisteredRef.current.vaquitaId === vaquitaId && lastRegisteredRef.current.title === sanitizedTitle) {
+      return;
+    }
 
     const isParticipant = friends.some(
       (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
@@ -178,17 +192,28 @@ export const useVaquita = () => {
 
     if (isParticipant) {
       const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
-      setDoc(
-        userVaquitaRef,
-        {
-          id: vaquitaId,
-          title: title || vaquitaId,
-          lastVisited: serverTimestamp(),
-        },
-        { merge: true },
-      );
+      try {
+        await setDoc(
+          userVaquitaRef,
+          {
+            title: sanitizedTitle,
+            lastVisited: serverTimestamp(),
+          },
+          { merge: true },
+        );
+        lastRegisteredRef.current = { vaquitaId, title: sanitizedTitle };
+      } catch (error) {
+        console.error("Failed to register/update vaquita session:", error);
+      }
     }
   }, [user, vaquitaId, friends, title]);
+
+  // Automatically register/update current vaquita if user is a participant
+  useEffect(() => {
+    if (friends.length > 0) {
+      registerUserSession();
+    }
+  }, [friends.length, registerUserSession]);
 
   // Auth Operations
   const loginWithGoogle = async () => {
@@ -274,16 +299,11 @@ export const useVaquita = () => {
       !user.isAnonymous &&
       (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
     ) {
-      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
-      await setDoc(
-        userVaquitaRef,
-        {
-          id: vaquitaId,
-          title: title || vaquitaId,
-          lastVisited: serverTimestamp(),
-        },
-        { merge: true },
-      );
+      // Re-fetch friends list or wait for snapshot?
+      // Actually, we can just call registerUserSession but it needs to know we are a participant.
+      // Since we just added ourselves, we know we are a participant.
+      // Let's just use the shared logic.
+      await registerUserSession();
     }
   };
 

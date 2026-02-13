@@ -352,7 +352,6 @@ export const useVaquita = () => {
         // Roll back on error
         setInternalCurrency(previousCurrency);
         console.error("Failed to update currency:", error);
-        throw error;
       }
     },
     title,

@@ -1,0 +1,9 @@
+/* En tu archivo CSS global o mediante styled-components */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* SweetAlert2 styles are defined via customClass in src/utils/swal.js.
+   Avoid adding global .swal2-* overrides here to keep styling centralized. */

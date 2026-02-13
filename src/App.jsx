@@ -1,6 +1,6 @@
-import React from 'react';
 import { Cloud } from 'lucide-react';
 import { useVaquita } from './hooks/useVaquita';
+import { showConfirm } from './utils/swal';
 import Header from './components/Header';
 import JoinVaquita from './components/JoinVaquita';
 import FriendSection from './components/FriendSection';
@@ -28,17 +28,21 @@ const App = () => {
     loginWithGoogle,
     loginWithPhone,
     logout,
-    totals
+    totals,
+    title,
+    updateVaquitaInfo
   } = useVaquita();
 
   const handleReset = async () => {
-    if (confirm('¿Borrar TODOS los datos de la nube definitivamente?')) {
+    const result = await showConfirm('¿Estás seguro?', '¿Borrar TODOS los datos de la nube definitivamente?');
+    if (result.isConfirmed) {
       await resetAll();
     }
   };
 
   const handleRemoveFriend = async (id) => {
-    if (confirm('¿Eliminar a este amigo? Se borrarán también sus gastos.')) {
+    const result = await showConfirm('¿Eliminar amigo?', '¿Eliminar a este amigo? Se borrarán también sus gastos.');
+    if (result.isConfirmed) {
       await removeFriend(id);
     }
   };
@@ -70,6 +74,8 @@ const App = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
         <Header
+          title={title}
+          updateVaquitaInfo={updateVaquitaInfo}
           currency={currency}
           setCurrency={setCurrency}
           onReset={handleReset}
@@ -101,6 +107,7 @@ const App = () => {
               totals={totals}
               friends={friends}
               currency={currency}
+              vaquitaId={vaquitaId}
             />
           </div>
         </div>

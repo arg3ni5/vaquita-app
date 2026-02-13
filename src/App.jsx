@@ -30,7 +30,8 @@ const App = () => {
     logout,
     totals,
     title,
-    updateVaquitaInfo
+    updateVaquitaInfo,
+    toggleSettlementPaid
   } = useVaquita();
 
   const handleReset = async () => {
@@ -108,6 +109,8 @@ const App = () => {
               friends={friends}
               currency={currency}
               vaquitaId={vaquitaId}
+              title={title}
+              toggleSettlementPaid={toggleSettlementPaid}
             />
           </div>
         </div>

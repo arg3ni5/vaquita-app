@@ -29,6 +29,7 @@ export const useVaquita = () => {
   });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [settlements, setSettlements] = useState({});
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
@@ -96,6 +97,7 @@ export const useVaquita = () => {
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
+    const settlementsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements");
 
     const unsubFriends = onSnapshot(
       friendsRef,
@@ -121,10 +123,25 @@ export const useVaquita = () => {
       },
     );
 
+    const unsubSettlements = onSnapshot(
+      settlementsRef,
+      (snapshot) => {
+        const settMap = {};
+        snapshot.docs.forEach((doc) => {
+          settMap[doc.id] = doc.data().paid;
+        });
+        setSettlements(settMap);
+      },
+      (error) => {
+        console.error("Error loading settlements:", error);
+      },
+    );
+
     return () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
+      unsubSettlements();
     };
   }, [user, vaquitaId]);
 
@@ -222,22 +239,24 @@ export const useVaquita = () => {
     }
   };
 
-  const addExpense = async (friendId, amount) => {
+  const addExpense = async (friendId, amount, description = "") => {
     if (!friendId || !amount || !user || !vaquitaId) return;
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
     await addDoc(expensesRef, {
       friendId,
       amount: parseFloat(amount),
+      description: description.trim(),
       createdAt: Date.now(),
     });
   };
 
-  const updateExpense = async (id, friendId, amount) => {
+  const updateExpense = async (id, friendId, amount, description = "") => {
     if (!id || !user || !vaquitaId) return;
     const expenseDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses", id);
     await updateDoc(expenseDoc, {
       friendId,
       amount: parseFloat(amount),
+      description: description.trim(),
     });
   };
 
@@ -281,12 +300,23 @@ export const useVaquita = () => {
     if (!user || !vaquitaId) return;
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
+    const settlementsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements");
 
     const fDocs = await getDocs(friendsRef);
     const eDocs = await getDocs(expensesRef);
+    const sDocs = await getDocs(settlementsRef);
 
     for (const d of fDocs.docs) await deleteDoc(d.ref);
     for (const d of eDocs.docs) await deleteDoc(d.ref);
+    for (const d of sDocs.docs) await deleteDoc(d.ref);
+  };
+
+  const toggleSettlementPaid = async (fromId, toId) => {
+    if (!user || !vaquitaId) return;
+    const id = `${fromId}_${toId}`;
+    const isPaid = !!settlements[id];
+    const settlementRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements", id);
+    await setDoc(settlementRef, { paid: !isPaid }, { merge: true });
   };
 
   // Calculations
@@ -302,6 +332,7 @@ export const useVaquita = () => {
     const average = total / friends.length;
 
     const balances = spentPerFriend.map((f) => ({
+      id: f.id,
       name: f.name,
       phone: f.phone,
       balance: f.totalSpent - average,
@@ -319,7 +350,19 @@ export const useVaquita = () => {
     while (d < tempDebtors.length && c < tempCreditors.length) {
       const amount = Math.min(tempDebtors[d].balance, tempCreditors[c].balance);
       if (amount > 0.01) {
-        transactions.push({ from: tempDebtors[d].name, fromPhone: tempDebtors[d].phone, to: tempCreditors[c].name, amount });
+        const fromId = tempDebtors[d].id;
+        const toId = tempCreditors[c].id;
+        const settleId = `${fromId}_${toId}`;
+        transactions.push({
+          from: tempDebtors[d].name,
+          fromId,
+          fromPhone: tempDebtors[d].phone,
+          to: tempCreditors[c].name,
+          toId,
+          toPhone: tempCreditors[c].phone,
+          amount,
+          paid: !!settlements[settleId],
+        });
       }
       tempDebtors[d].balance -= amount;
       tempCreditors[c].balance -= amount;
@@ -328,7 +371,7 @@ export const useVaquita = () => {
     }
 
     return { total, average, transactions, balances };
-  }, [friends, expenses]);
+  }, [friends, expenses, settlements]);
 
   return {
     vaquitaId,
@@ -363,6 +406,7 @@ export const useVaquita = () => {
     updateExpense,
     removeExpense,
     resetAll,
+    toggleSettlementPaid,
     totals,
   };
 };

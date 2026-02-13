@@ -6,9 +6,11 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
   const [isSaving, setIsSaving] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editFriendId, setEditFriendId] = useState('');
   const [editAmount, setEditAmount] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,8 +25,9 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     }
     setIsSaving(true);
     try {
-      await onAdd(selectedFriendId, expenseAmount);
+      await onAdd(selectedFriendId, expenseAmount, expenseDescription);
       setExpenseAmount('');
+      setExpenseDescription('');
       setSelectedFriendId('');
     } finally {
       setIsSaving(false);
@@ -35,6 +38,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     setEditingId(expense.id);
     setEditFriendId(expense.friendId);
     setEditAmount(expense.amount);
+    setEditDescription(expense.description || '');
   };
 
   const handleUpdate = async () => {
@@ -47,7 +51,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
       await showAlert("Monto inválido", "Ingresa un monto válido mayor a 0.", "warning");
       return;
     }
-    onUpdate(editingId, editFriendId, editAmount);
+    onUpdate(editingId, editFriendId, editAmount, editDescription);
     setEditingId(null);
   };
 
@@ -79,6 +83,13 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
             />
           </div>
+          <input
+            type="text"
+            placeholder="Descripción (ej. Pizza, Gasolina...)"
+            value={expenseDescription}
+            onChange={(e) => setExpenseDescription(e.target.value)}
+            className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+          />
           <button
             disabled={isSaving}
             className="sm:col-span-2 bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -101,18 +112,27 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
               <div key={exp.id} className="bg-slate-50 rounded-2xl p-3 border border-slate-100">
                 {editingId === exp.id ? (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <select
-                        value={editFriendId}
-                        onChange={(e) => setEditFriendId(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
-                      >
-                        {friends.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                      </select>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          value={editFriendId}
+                          onChange={(e) => setEditFriendId(e.target.value)}
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
+                        >
+                          {friends.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                        </select>
+                        <input
+                          type="number"
+                          value={editAmount}
+                          onChange={(e) => setEditAmount(e.target.value)}
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
+                        />
+                      </div>
                       <input
-                        type="number"
-                        value={editAmount}
-                        onChange={(e) => setEditAmount(e.target.value)}
+                        type="text"
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        placeholder="Descripción"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       />
                     </div>
@@ -128,7 +148,14 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
                 ) : (
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-bold text-slate-800 text-sm">{getFriendName(exp.friendId)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-800 text-sm">{getFriendName(exp.friendId)}</p>
+                        {exp.description && (
+                          <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-500 font-medium">
+                            {exp.description}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-indigo-600 font-bold">{currency}{exp.amount.toLocaleString()}</p>
                     </div>
                     <div className="flex gap-1">

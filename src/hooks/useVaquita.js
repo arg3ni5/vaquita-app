@@ -141,6 +141,7 @@ export const useVaquita = () => {
       unsubFriends();
       unsubExpenses();
       unsubHistory();
+      setHistory([]);
     };
   }, [user, vaquitaId]);
 
@@ -310,6 +311,9 @@ export const useVaquita = () => {
 
     const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
 
+    // Create a lookup map for better performance
+    const friendsMap = Object.fromEntries(friends.map((f) => [f.id, f.name]));
+
     await addDoc(historyRef, {
       title: title || "Mi Vaquita",
       currency,
@@ -320,6 +324,12 @@ export const useVaquita = () => {
         totalSpent: expenses
           .filter((e) => e.friendId === f.id)
           .reduce((sum, e) => sum + e.amount, 0),
+      })),
+      expenses: expenses.map((e) => ({
+        friendId: e.friendId,
+        friendName: friendsMap[e.friendId] || 'Unknown',
+        amount: e.amount,
+        createdAt: e.createdAt,
       })),
       transactions: totals.transactions,
       createdAt: Date.now(),

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Download, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { CheckCircle2, ArrowRight, MessageCircle, Lock, History, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, FileText } from 'lucide-react';
 import { exportAsImage, exportAsPDF } from '../utils/exportUtils';
 import { showConfirm, showAlert } from '../utils/swal';
+import { ExportCard } from './ExportCard';
 
 const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, deleteHistoryItem, history, title }) => {
   const [expandedHistory, setExpandedHistory] = useState(null);
@@ -18,8 +19,17 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     );
 
     if (result.isConfirmed) {
-      await archiveVaquita();
-      showAlert("Vaquita Cerrada", "Los datos han sido archivados en el historial.", "success");
+      try {
+        await archiveVaquita();
+        showAlert("Vaquita Cerrada", "Los datos han sido archivados en el historial.", "success");
+      } catch (error) {
+        console.error('Error al archivar la vaquita:', error);
+        showAlert(
+          "Error al cerrar la vaquita",
+          "Ocurrió un problema al archivar los datos. Por favor, inténtalo de nuevo.",
+          "error"
+        );
+      }
     }
   };
 
@@ -29,6 +39,16 @@ const SummarySection = ({ totals, friends, currency, vaquitaId, archiveVaquita, 
     } else {
       await exportAsPDF(elementId, filename);
     }
+  };
+
+  const exportRef = useRef(null);
+
+  const downloadHistory = async (format) => {
+    const elementId = "export-card";
+    const filename = `vaquita-${title || vaquitaId}-${new Date().toISOString().split("T")[0]}`;
+
+    if (format === "image") await exportAsImage(elementId, filename);
+    else await exportAsPDF(elementId, filename);
   };
 
   const sendWhatsApp = (t) => {
@@ -81,14 +101,14 @@ ${link} Ver detalle: ${shareUrl.toString()}
             {totals.transactions.length > 0 && (
               <>
                 <button
-                  onClick={() => handleExport("liquidation-card", `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`, 'image')}
+                  onClick={() => downloadHistory('image')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar Imagen"
                 >
                   <ImageIcon className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => handleExport("liquidation-card", `vaquita-${title || vaquitaId}-${new Date().toISOString().split('T')[0]}`, 'pdf')}
+                  onClick={() => downloadHistory('pdf')}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
                   title="Descargar PDF"
                 >
@@ -251,6 +271,20 @@ ${link} Ver detalle: ${shareUrl.toString()}
           </div>
         </div>
       )}
+
+      {/* Export view (oculto) */}
+      <div style={{ position: "fixed", left: "-10000px", top: 0 }}>
+        <div id="export-card">
+          <ExportCard
+            ref={exportRef}
+            title={title}
+            currency={currency}
+            totals={totals}
+            friendsCount={friends.length}
+            vaquitaId={vaquitaId}
+          />
+        </div>
+      </div>
     </div>
   );
 };

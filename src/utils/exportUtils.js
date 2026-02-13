@@ -232,14 +232,18 @@ export const exportAsPDF = async (elementId, filename = 'resumen-vaquita') => {
     let heightLeft = imgHeight;
     let pageNumber = 0;
 
-    // Add first page
+    // Add first page at position 0 (shows top portion of image)
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
     heightLeft -= pageHeight;
 
     // Add additional pages if the content is taller than one page
+    // Each page shifts the Y position to show the next portion of the image
     while (heightLeft > 0) {
       pageNumber++;
       pdf.addPage();
+      // Negative Y offset shifts image upward to show lower content
+      // pageNumber=1: -pageHeight (shows content starting at pageHeight down)
+      // pageNumber=2: -2*pageHeight (shows content starting at 2*pageHeight down)
       pdf.addImage(imgData, 'PNG', 0, -pageHeight * pageNumber, pdfWidth, imgHeight);
       heightLeft -= pageHeight;
     }

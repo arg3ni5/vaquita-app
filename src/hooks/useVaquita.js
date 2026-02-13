@@ -9,18 +9,40 @@ import {
   signInWithPhoneNumber,
   signOut,
 } from "firebase/auth";
-import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, getDocs, setDoc } from "firebase/firestore";
 import { auth, db, appId } from "../firebase";
 import { AuthError } from "../utils/AuthError";
 
+const sanitizeId = (id) => {
+  return (id ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 100);
+};
+
 export const useVaquita = () => {
-  const [vaquitaId, setVaquitaId] = useState(() => localStorage.getItem("vaquitaId") || "");
+  const [vaquitaId, setVaquitaId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get("v");
+    if (urlId) {
+      const cleanId = sanitizeId(urlId);
+      if (cleanId) {
+        localStorage.setItem("vaquitaId", cleanId);
+        return cleanId;
+      }
+    }
+    return localStorage.getItem("vaquitaId") || "";
+  });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
-  const [currency, setCurrency] = useState("¢");
+  const [currency, setInternalCurrency] = useState("¢");
+  const [title, setTitle] = useState("");
 
   // Auth Initialization
   useEffect(() => {
@@ -46,6 +68,18 @@ export const useVaquita = () => {
   // Data Synchronization
   useEffect(() => {
     if (!user || !vaquitaId) return;
+
+    const sessionRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId);
+    const unsubSession = onSnapshot(sessionRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.currency) setInternalCurrency(data.currency);
+        if (data.title) setTitle(data.title);
+      } else {
+        // Initialize metadata if it doesn't exist
+        setDoc(sessionRef, { title: vaquitaId, currency: "¢", createdAt: Date.now() }, { merge: true });
+      }
+    });
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
@@ -75,6 +109,7 @@ export const useVaquita = () => {
     );
 
     return () => {
+      unsubSession();
       unsubFriends();
       unsubExpenses();
     };
@@ -122,17 +157,15 @@ export const useVaquita = () => {
 
   // CRUD Operations
   const selectVaquita = (id) => {
-    const rawId = (id ?? "").toString();
-    const cleanId = rawId
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "")
-      .slice(0, 100);
+    const cleanId = sanitizeId(id);
     if (cleanId) {
       setDataLoading(true);
       setVaquitaId(cleanId);
       localStorage.setItem("vaquitaId", cleanId);
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", cleanId);
+      window.history.replaceState({}, "", url.toString());
     }
   };
 
@@ -142,6 +175,10 @@ export const useVaquita = () => {
     localStorage.removeItem("vaquitaId");
     setFriends([]);
     setExpenses([]);
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("v");
+    window.history.replaceState({}, "", url.toString());
   };
 
   const addFriend = async (name, phone) => {
@@ -194,6 +231,12 @@ export const useVaquita = () => {
   const removeExpense = async (id) => {
     if (!user || !vaquitaId) return;
     await deleteDoc(doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses", id));
+  };
+
+  const updateVaquitaInfo = async (updates) => {
+    if (!user || !vaquitaId) return;
+    const sessionRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId);
+    await setDoc(sessionRef, updates, { merge: true });
   };
 
   const resetAll = async () => {
@@ -261,7 +304,9 @@ export const useVaquita = () => {
     loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
     user,
     currency,
-    setCurrency,
+    setCurrency: (c) => updateVaquitaInfo({ currency: c }),
+    title,
+    updateVaquitaInfo,
     addFriend,
     updateFriend,
     removeFriend,

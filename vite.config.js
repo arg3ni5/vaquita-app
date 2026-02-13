@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 // Transformamos el export en una función para acceder al 'mode'
 export default defineConfig(({ mode }) => {
   // Carga las variables del archivo .env y del sistema (GitHub Actions)
+  // eslint-disable-next-line no-undef
   const env = loadEnv(mode, process.cwd(), '');
 
   return {

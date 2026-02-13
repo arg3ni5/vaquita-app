@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Esto ajusta el color del check y del signo de exclamación al violeta de Vaquita */
+.swal2-icon.swal2-success .swal2-success-ring,
+.swal2-icon.swal2-info,
+.swal2-icon.swal2-warning {
+  border-color: #5138ed !important;
+  color: #5138ed !important;
+}
+.swal2-success-line-tip, .swal2-success-line-long {
+  background-color: #5138ed !important;
+}

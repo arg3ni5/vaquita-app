@@ -1,4 +1,4 @@
-# 🐷 Vaquita App
+# 🐮 Vaquita App
 
 Una aplicación web moderna para gestionar gastos compartidos entre amigos. Perfecta para viajes, salidas grupales o cualquier situación donde necesites dividir gastos de manera justa.
 

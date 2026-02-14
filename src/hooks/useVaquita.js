@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   signInAnonymously,
   signInWithCustomToken,
@@ -37,7 +37,6 @@ export const useVaquita = () => {
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
   const [userVaquitas, setUserVaquitas] = useState([]);
-  const lastRegisteredRef = useRef({ vaquitaId: "", title: "" });
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -100,7 +99,6 @@ export const useVaquita = () => {
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
-    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
     const settlementsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements");
 
     const unsubFriends = onSnapshot(
@@ -179,42 +177,38 @@ export const useVaquita = () => {
     return () => unsub();
   }, [user]);
 
+  // Helper function to register/update user's vaquita session
+  const saveUserVaquitaSession = useCallback(async (sessionVaquitaId, sessionTitle) => {
+    if (!user || user.isAnonymous) return;
+
+    const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", sessionVaquitaId);
+
+    try {
+      await setDoc(
+        userVaquitaRef,
+        {
+          title: sessionTitle,
+          lastVisited: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      console.error("Failed to register/update vaquita session:", error);
+    }
+  }, [user]);
+
   const registerUserSession = useCallback(async () => {
     if (!user || user.isAnonymous || !vaquitaId) return;
 
-    const sanitizedTitle = (title && sanitizeName(title)) || vaquitaId;
+    const isParticipant = friends.some(
+      (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
+    );
 
-    // Check if we already registered this exact state to avoid redundant writes
-    if (lastRegisteredRef.current.vaquitaId === vaquitaId && lastRegisteredRef.current.title === sanitizedTitle) {
-      return;
-    }
+    if (!isParticipant) return;
 
-    const registerVaquitaSession = async () => {
-      const isParticipant = friends.some(
-        (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
-      );
-
-      if (!isParticipant) return;
-
-      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
-
-      try {
-        const sessionTitle = title ? sanitizeName(title) : vaquitaId;
-        await setDoc(
-          userVaquitaRef,
-          {
-            title: sessionTitle,
-            lastVisited: serverTimestamp(),
-          },
-          { merge: true },
-        );
-      } catch (error) {
-        console.error("Failed to register/update vaquita session:", error);
-      }
-    };
-
-    registerVaquitaSession();
-  }, [user, vaquitaId, friends, title]);
+    const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+    await saveUserVaquitaSession(vaquitaId, sessionTitle);
+  }, [user, vaquitaId, friends, title, saveUserVaquitaSession]);
 
   // Automatically register/update current vaquita if user is a participant
   useEffect(() => {
@@ -307,16 +301,8 @@ export const useVaquita = () => {
       !user.isAnonymous &&
       (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
     ) {
-      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
       const sessionTitle = title ? sanitizeName(title) : vaquitaId;
-      await setDoc(
-        userVaquitaRef,
-        {
-          title: sessionTitle,
-          lastVisited: serverTimestamp(),
-        },
-        { merge: true },
-      );
+      await saveUserVaquitaSession(vaquitaId, sessionTitle);
     }
   };
 

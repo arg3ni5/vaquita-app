@@ -479,15 +479,21 @@ export const useVaquita = () => {
       // Contar cuántas cuotas cubre (incluyendo la suya si pagó)
       let quotasCovered = 0;
       
-      if (directExpenses > 0) {
-        quotasCovered = 1; // Su propia cuota
-        
-        // Más las cuotas de otros que cubrió
-        expenses
-          .filter((e) => e.friendId === f.id && e.coversFor && e.coversFor.length > 0)
-          .forEach((e) => {
-            quotasCovered += e.coversFor.length;
-          });
+      // Solo contar cuotas si no está exento
+      if (!f.exempt) {
+        if (directExpenses > 0) {
+          quotasCovered = 1; // Su propia cuota
+          
+          // Más las cuotas de otros que cubrió
+          expenses
+            .filter((e) => e.friendId === f.id && e.coversFor && e.coversFor.length > 0)
+            .forEach((e) => {
+              quotasCovered += e.coversFor.length;
+            });
+        } else {
+          // Si no ha pagado nada, aún debe su propia cuota
+          quotasCovered = 1;
+        }
       }
 
       return { 

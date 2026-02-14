@@ -513,13 +513,14 @@ export const useVaquita = () => {
     // Calculate balances considering who covers whom
     const balances = spentPerFriend.map((f) => {
       if (f.exempt) {
-        // Guests don't participate in the division
+        // Guests don't participate in the division, but if they spent money, 
+        // they should be reimbursed (positive balance)
         return {
           id: f.id,
           name: f.name,
           phone: f.phone,
           exempt: f.exempt,
-          balance: 0,
+          balance: f.totalSpent, // What they paid is their balance (they're owed this)
           shouldPay: 0,
           paid: f.totalSpent,
           coveredBy: f.coveredBy,

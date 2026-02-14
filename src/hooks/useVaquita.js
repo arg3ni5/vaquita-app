@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   signInAnonymously,
   signInWithCustomToken,
@@ -36,6 +36,7 @@ export const useVaquita = () => {
   const [dataLoading, setDataLoading] = useState(() => !!localStorage.getItem("vaquitaId"));
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
+  const [userVaquitas, setUserVaquitas] = useState([]);
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -98,7 +99,6 @@ export const useVaquita = () => {
 
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const expensesRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "expenses");
-    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
     const settlementsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements");
 
     const unsubFriends = onSnapshot(
@@ -143,11 +143,79 @@ export const useVaquita = () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
-      //unsubHistory();
       setHistory([]);
       unsubSettlements();
     };
   }, [user, vaquitaId]);
+
+  // Fetch user's vaquitas
+  useEffect(() => {
+    if (!user || user.isAnonymous) {
+      setUserVaquitas([]);
+      return;
+    }
+
+    const userVaquitasRef = collection(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions");
+    const unsub = onSnapshot(
+      userVaquitasRef,
+      (snapshot) => {
+        const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        // Sort by lastVisited descending
+        list.sort((a, b) => {
+          const timeA = a.lastVisited?.toMillis ? a.lastVisited.toMillis() : (a.lastVisited || 0);
+          const timeB = b.lastVisited?.toMillis ? b.lastVisited.toMillis() : (b.lastVisited || 0);
+          return timeB - timeA;
+        });
+        setUserVaquitas(list);
+      },
+      (error) => {
+        console.error("Error fetching user's vaquitas:", error);
+        setUserVaquitas([]);
+      },
+    );
+
+    return () => unsub();
+  }, [user]);
+
+  // Helper function to register/update user's vaquita session
+  const saveUserVaquitaSession = useCallback(async (sessionVaquitaId, sessionTitle) => {
+    if (!user || user.isAnonymous) return;
+
+    const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", sessionVaquitaId);
+
+    try {
+      await setDoc(
+        userVaquitaRef,
+        {
+          title: sessionTitle,
+          lastVisited: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      console.error("Failed to register/update vaquita session:", error);
+    }
+  }, [user]);
+
+  const registerUserSession = useCallback(async () => {
+    if (!user || user.isAnonymous || !vaquitaId) return;
+
+    const isParticipant = friends.some(
+      (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
+    );
+
+    if (!isParticipant) return;
+
+    const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+    await saveUserVaquitaSession(vaquitaId, sessionTitle);
+  }, [user, vaquitaId, friends, title, saveUserVaquitaSession]);
+
+  // Automatically register/update current vaquita if user is a participant
+  useEffect(() => {
+    if (friends.length > 0) {
+      registerUserSession();
+    }
+  }, [friends.length, registerUserSession]);
 
   // Auth Operations
   const loginWithGoogle = async () => {
@@ -216,14 +284,26 @@ export const useVaquita = () => {
     window.history.replaceState({}, "", url.toString());
   };
 
-  const addFriend = async (name, phone) => {
+  const addFriend = async (name, phone, friendUid = null) => {
     if (!name.trim() || !user || !vaquitaId) return;
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
-    await addDoc(friendsRef, {
+    const friendData = {
       name,
       phone: phone.replace(/\D/g, ""),
       createdAt: Date.now(),
-    });
+    };
+    if (friendUid) friendData.uid = friendUid;
+
+    await addDoc(friendsRef, friendData);
+
+    // Register if it's the current user
+    if (
+      !user.isAnonymous &&
+      (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
+    ) {
+      const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+      await saveUserVaquitaSession(vaquitaId, sessionTitle);
+    }
   };
 
   const updateFriend = async (id, name, phone) => {
@@ -431,6 +511,7 @@ export const useVaquita = () => {
     expenses,
     loading: authLoading || (!!vaquitaId && dataLoading && friends.length === 0),
     user,
+    userVaquitas,
     currency,
     setCurrency: async (c) => {
       const previousCurrency = currency;

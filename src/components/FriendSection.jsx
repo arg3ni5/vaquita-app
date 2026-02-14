@@ -48,7 +48,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     if (user && !user.isAnonymous) {
       const myName = user.displayName || user.email?.split('@')[0] || "Yo";
       const myPhone = user.phoneNumber || "";
-      onAdd(myName, myPhone);
+      onAdd(myName, myPhone, user.uid);
     }
   };
 

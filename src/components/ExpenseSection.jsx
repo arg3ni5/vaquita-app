@@ -76,15 +76,14 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
           </h2>
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
-            className="text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+            className="lg:hidden text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
             aria-label={isFormVisible ? "Ocultar formulario de gastos" : "Mostrar formulario de gastos"}
           >
             {isFormVisible ? 'Ocultar' : 'Añadir'}
           </button>
         </div>
-        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? 'flex' : 'hidden'}`}>
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${isFormVisible ? '' : 'hidden'} lg:grid`}>
           <select
-            id='friendSelect'
             value={selectedFriendId}
             onChange={(e) => setSelectedFriendId(e.target.value)}
             className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm cursor-pointer"
@@ -102,16 +101,13 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
             />
           </div>
-          <div className="w-full sm:col-span-2">
-            <input
-              id='descripcion'
-              type="text"
-              placeholder="Descripción (ej. Pizza, Gasolina...)"
-              value={expenseDescription}
-              onChange={(e) => setExpenseDescription(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Descripción (ej. Pizza, Gasolina...)"
+            value={expenseDescription}
+            onChange={(e) => setExpenseDescription(e.target.value)}
+            className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+          />
           <button
             disabled={isSaving}
             className="sm:col-span-2 bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"

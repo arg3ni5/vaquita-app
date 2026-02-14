@@ -243,7 +243,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
                     )}
                     
                     {f.phone && (
-                      <span className="text-[10px] text-slate-400">{f.phone || 'Sin WhatsApp'}</span>
+                      <span className="text-[10px] text-slate-400">{f.phone}</span>
                     )}
                   </div>
                   <div className="flex gap-1 ml-2">

@@ -286,6 +286,20 @@ export const useVaquita = () => {
 
   const addFriend = async (name, phone, friendUid = null, exempt = false, coveredBy = null) => {
     if (!name.trim() || !user || !vaquitaId) return;
+    
+    // Validation: exempt friends cannot have coveredBy
+    if (exempt && coveredBy) {
+      coveredBy = null;
+    }
+    
+    // Validation: coveredBy must reference a valid, non-exempt friend
+    if (coveredBy) {
+      const coveringFriend = friends.find(f => f.id === coveredBy);
+      if (!coveringFriend || coveringFriend.exempt) {
+        coveredBy = null;
+      }
+    }
+    
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const friendData = {
       name,
@@ -310,6 +324,20 @@ export const useVaquita = () => {
 
   const updateFriend = async (id, name, phone, exempt = false, coveredBy = null) => {
     if (!id || !user || !vaquitaId) return;
+    
+    // Validation: exempt friends cannot have coveredBy
+    if (exempt && coveredBy) {
+      coveredBy = null;
+    }
+    
+    // Validation: coveredBy must reference a valid, non-exempt friend
+    if (coveredBy) {
+      const coveringFriend = friends.find(f => f.id === coveredBy);
+      if (!coveringFriend || coveringFriend.exempt) {
+        coveredBy = null;
+      }
+    }
+    
     const friendDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends", id);
     await updateDoc(friendDoc, {
       name,
@@ -502,8 +530,12 @@ export const useVaquita = () => {
       let shouldPay = average;
 
       // If someone covers their quota, they don't have to pay
+      // Validate that coveredBy references a valid, non-exempt friend
       if (f.coveredBy) {
-        shouldPay = 0;
+        const coveringFriend = friends.find(friend => friend.id === f.coveredBy);
+        if (coveringFriend && !coveringFriend.exempt) {
+          shouldPay = 0;
+        }
       }
 
       // If this person covers others, add those quotas

@@ -6,9 +6,11 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [friendName, setFriendName] = useState('');
   const [friendPhone, setFriendPhone] = useState('');
+  const [friendExempt, setFriendExempt] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editExempt, setEditExempt] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -20,9 +22,10 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     }
     setIsSaving(true);
     try {
-      await onAdd(trimmedName, friendPhone);
+      await onAdd(trimmedName, friendPhone, null, friendExempt);
       setFriendName('');
       setFriendPhone('');
+      setFriendExempt(false);
     } finally {
       setIsSaving(false);
     }
@@ -32,6 +35,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
     setEditingId(friend.id);
     setEditName(friend.name);
     setEditPhone(friend.phone);
+    setEditExempt(friend.exempt || false);
   };
 
   const handleUpdate = async () => {
@@ -40,7 +44,7 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
       await showAlert("Campo requerido", "El nombre no puede estar vacío.", "warning");
       return;
     }
-    onUpdate(editingId, trimmedName, editPhone);
+    onUpdate(editingId, trimmedName, editPhone, editExempt);
     setEditingId(null);
   };
 
@@ -89,6 +93,16 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
           onChange={(e) => setFriendPhone(e.target.value)}
           className="flex-1 px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
         />
+        <label className="flex items-center gap-2 text-sm text-slate-600 px-1 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={friendExempt}
+            onChange={(e) => setFriendExempt(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            disabled={isSaving}
+          />
+          <span className="font-medium">🎁 Esta persona está invitada (no paga)</span>
+        </label>
         <button
           disabled={isSaving}
           className="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-all text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -115,6 +129,15 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
                     onChange={(e) => setEditPhone(e.target.value)}
                     className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs"
                   />
+                  <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editExempt}
+                      onChange={(e) => setEditExempt(e.target.checked)}
+                      className="w-3 h-3 rounded"
+                    />
+                    <span>🎁 Invitado</span>
+                  </label>
                   <div className="flex gap-1">
                     <button onClick={handleUpdate} className="p-1.5 text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 active:scale-90">
                       <Check className="w-3 h-3" />
@@ -127,7 +150,14 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
               ) : (
                 <>
                   <div className="truncate flex-1 min-w-0">
-                    <p className="font-bold text-slate-700 text-xs truncate">{f.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-700 text-xs truncate">{f.name}</p>
+                      {f.exempt && (
+                        <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-black uppercase tracking-wide">
+                          🎁 Invitado
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-slate-400">{f.phone || 'Sin WhatsApp'}</p>
                   </div>
                   <div className="flex gap-1 ml-2">

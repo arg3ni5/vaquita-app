@@ -236,11 +236,15 @@ const FriendSection = ({ friends, onAdd, onUpdate, onRemove, user }) => {
                       </span>
                     )}
                     
-                    {f.coveredBy && (
-                      <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black uppercase tracking-wide">
-                        💸 {friends.find(friend => friend.id === f.coveredBy)?.name || 'Alguien'} cubre
-                      </span>
-                    )}
+                    {f.coveredBy && (() => {
+                      const coveringFriend = friends.find(friend => friend.id === f.coveredBy);
+                      if (!coveringFriend || coveringFriend.exempt) return null;
+                      return (
+                        <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-black uppercase tracking-wide">
+                          💸 {coveringFriend.name} cubre
+                        </span>
+                      );
+                    })()}
                     
                     {f.phone && (
                       <span className="text-[10px] text-slate-400">{f.phone}</span>

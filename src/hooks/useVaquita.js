@@ -330,10 +330,10 @@ export const useVaquita = () => {
       coveredBy = null;
     }
     
-    // Validation: coveredBy must reference a valid, non-exempt friend
+    // Validation: coveredBy must reference a valid, non-exempt friend (not self)
     if (coveredBy) {
       const coveringFriend = friends.find(f => f.id === coveredBy);
-      if (!coveringFriend || coveringFriend.exempt) {
+      if (!coveringFriend || coveringFriend.exempt || coveredBy === id) {
         coveredBy = null;
       }
     }
@@ -482,16 +482,33 @@ export const useVaquita = () => {
   const totals = useMemo(() => {
     if (friends.length === 0) return { total: 0, average: 0, transactions: [], balances: [], exemptCount: 0, payingFriendsCount: 0 };
 
-    // Filter friends who participate in the division (not exempt)
-    const payingFriends = friends.filter(f => !f.exempt);
-    const payingFriendsCount = payingFriends.length;
+    // Count friends who participate in the division (not exempt)
+    const payingFriendsCount = friends.filter(f => !f.exempt).length;
 
     if (payingFriendsCount === 0) {
+      // Still compute total and balances even if no one is paying
+      const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+      const spentPerFriend = friends.map((f) => {
+        const totalSpent = expenses
+          .filter((e) => e.friendId === f.id)
+          .reduce((sum, e) => sum + e.amount, 0);
+        return {
+          id: f.id,
+          name: f.name,
+          phone: f.phone,
+          exempt: f.exempt,
+          balance: totalSpent, // Exempt friends are owed what they paid
+          shouldPay: 0,
+          paid: totalSpent,
+          coveredBy: f.coveredBy,
+        };
+      });
+      
       return { 
-        total: 0, 
+        total, 
         average: 0, 
         transactions: [], 
-        balances: [],
+        balances: spentPerFriend,
         exemptCount: friends.length,
         payingFriendsCount: 0
       };
@@ -567,7 +584,7 @@ export const useVaquita = () => {
       .map((b) => ({ ...b, balance: Math.abs(b.balance) }));
     
     const creditors = balances
-      .filter((b) => !b.exempt && b.balance > 0.01);
+      .filter((b) => b.balance > 0.01);
 
     // Generate transactions
     const transactions = [];

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   signInAnonymously,
   signInWithCustomToken,
@@ -36,6 +36,7 @@ export const useVaquita = () => {
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
   const [userVaquitas, setUserVaquitas] = useState([]);
+  const lastRegisteredRef = useRef({ vaquitaId: "", title: "" });
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -175,9 +176,15 @@ export const useVaquita = () => {
     return () => unsub();
   }, [user]);
 
-  // Automatically register/update current vaquita if user is a participant
-  useEffect(() => {
-    if (!user || user.isAnonymous || !vaquitaId || friends.length === 0) return;
+  const registerUserSession = useCallback(async () => {
+    if (!user || user.isAnonymous || !vaquitaId) return;
+
+    const sanitizedTitle = (title && sanitizeName(title)) || vaquitaId;
+
+    // Check if we already registered this exact state to avoid redundant writes
+    if (lastRegisteredRef.current.vaquitaId === vaquitaId && lastRegisteredRef.current.title === sanitizedTitle) {
+      return;
+    }
 
     const registerVaquitaSession = async () => {
       const isParticipant = friends.some(
@@ -205,6 +212,13 @@ export const useVaquita = () => {
 
     registerVaquitaSession();
   }, [user, vaquitaId, friends, title]);
+
+  // Automatically register/update current vaquita if user is a participant
+  useEffect(() => {
+    if (friends.length > 0) {
+      registerUserSession();
+    }
+  }, [friends.length, registerUserSession]);
 
   // Auth Operations
   const loginWithGoogle = async () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   signInAnonymously,
   signInWithCustomToken,
@@ -29,6 +29,7 @@ export const useVaquita = () => {
   });
   const [friends, setFriends] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [history, setHistory] = useState([]);
   const [settlements, setSettlements] = useState({});
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -36,7 +37,6 @@ export const useVaquita = () => {
   const [currency, setInternalCurrency] = useState("¢");
   const [title, setTitle] = useState("");
   const [userVaquitas, setUserVaquitas] = useState([]);
-  const lastRegisteredRef = useRef({ vaquitaId: "", title: "" });
 
   // Watch for URL parameter changes
   useEffect(() => {
@@ -143,6 +143,7 @@ export const useVaquita = () => {
       unsubSession();
       unsubFriends();
       unsubExpenses();
+      setHistory([]);
       unsubSettlements();
     };
   }, [user, vaquitaId]);
@@ -176,37 +177,38 @@ export const useVaquita = () => {
     return () => unsub();
   }, [user]);
 
+  // Helper function to register/update user's vaquita session
+  const saveUserVaquitaSession = useCallback(async (sessionVaquitaId, sessionTitle) => {
+    if (!user || user.isAnonymous) return;
+
+    const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", sessionVaquitaId);
+
+    try {
+      await setDoc(
+        userVaquitaRef,
+        {
+          title: sessionTitle,
+          lastVisited: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      console.error("Failed to register/update vaquita session:", error);
+    }
+  }, [user]);
+
   const registerUserSession = useCallback(async () => {
     if (!user || user.isAnonymous || !vaquitaId) return;
-
-    const sanitizedTitle = (title && sanitizeName(title)) || vaquitaId;
-
-    // Check if we already registered this exact state to avoid redundant writes
-    if (lastRegisteredRef.current.vaquitaId === vaquitaId && lastRegisteredRef.current.title === sanitizedTitle) {
-      return;
-    }
 
     const isParticipant = friends.some(
       (f) => f.uid === user.uid || (user.phoneNumber && f.phone === user.phoneNumber.replace(/\D/g, "")),
     );
 
-    if (isParticipant) {
-      const userVaquitaRef = doc(db, "artifacts", appId, "public", "data", "users", user.uid, "sessions", vaquitaId);
-      try {
-        await setDoc(
-          userVaquitaRef,
-          {
-            title: sanitizedTitle,
-            lastVisited: serverTimestamp(),
-          },
-          { merge: true },
-        );
-        lastRegisteredRef.current = { vaquitaId, title: sanitizedTitle };
-      } catch (error) {
-        console.error("Failed to register/update vaquita session:", error);
-      }
-    }
-  }, [user, vaquitaId, friends, title]);
+    if (!isParticipant) return;
+
+    const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+    await saveUserVaquitaSession(vaquitaId, sessionTitle);
+  }, [user, vaquitaId, friends, title, saveUserVaquitaSession]);
 
   // Automatically register/update current vaquita if user is a participant
   useEffect(() => {
@@ -299,11 +301,8 @@ export const useVaquita = () => {
       !user.isAnonymous &&
       (friendUid === user.uid || (user.phoneNumber && friendData.phone === user.phoneNumber.replace(/\D/g, "")))
     ) {
-      // Re-fetch friends list or wait for snapshot?
-      // Actually, we can just call registerUserSession but it needs to know we are a participant.
-      // Since we just added ourselves, we know we are a participant.
-      // Let's just use the shared logic.
-      await registerUserSession();
+      const sessionTitle = title ? sanitizeName(title) : vaquitaId;
+      await saveUserVaquitaSession(vaquitaId, sessionTitle);
     }
   };
 
@@ -401,12 +400,50 @@ export const useVaquita = () => {
     if (!user || !vaquitaId) return;
     const id = `${fromId}_${toId}`;
     const settlementRef = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "settlements", id);
-
+    
     await runTransaction(db, async (transaction) => {
-      const settDoc = await transaction.get(settlementRef);
-      const isPaid = settDoc.exists() ? settDoc.data().paid : false;
-      transaction.set(settlementRef, { paid: !isPaid }, { merge: true });
+      const settlementDoc = await transaction.get(settlementRef);
+      const currentPaid = settlementDoc.exists() ? settlementDoc.data().paid : false;
+      transaction.set(settlementRef, { paid: !currentPaid }, { merge: true });
     });
+  };
+
+  const archiveVaquita = async () => {
+    if (!user || !vaquitaId || friends.length === 0) return;
+
+    const historyRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history");
+
+    // Create a lookup map for better performance
+    const friendsMap = Object.fromEntries(friends.map((f) => [f.id, f.name]));
+
+    await addDoc(historyRef, {
+      title: title || "Mi Vaquita",
+      currency,
+      total: totals.total,
+      average: totals.average,
+      friends: friends.map((f) => ({
+        name: f.name,
+        totalSpent: expenses
+          .filter((e) => e.friendId === f.id)
+          .reduce((sum, e) => sum + e.amount, 0),
+      })),
+      expenses: expenses.map((e) => ({
+        friendId: e.friendId,
+        friendName: friendsMap[e.friendId] || 'Unknown',
+        amount: e.amount,
+        createdAt: e.createdAt,
+      })),
+      transactions: totals.transactions,
+      createdAt: Date.now(),
+    });
+
+    await resetAll();
+  };
+
+  const deleteHistoryItem = async (historyId) => {
+    if (!user || !vaquitaId || !historyId) return;
+    const historyDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "history", historyId);
+    await deleteDoc(historyDoc);
   };
 
   // Calculations
@@ -497,6 +534,9 @@ export const useVaquita = () => {
     updateExpense,
     removeExpense,
     resetAll,
+    archiveVaquita,
+    deleteHistoryItem,
+    history,
     toggleSettlementPaid,
     totals,
   };

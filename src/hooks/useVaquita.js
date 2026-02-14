@@ -454,7 +454,7 @@ export const useVaquita = () => {
   const totals = useMemo(() => {
     if (friends.length === 0) return { total: 0, average: 0, transactions: [], balances: [] };
 
-    // Filtrar amigos que SÍ pagan (no están exentos)
+    // Filtrar amigos que pagan (no están exentos)
     const payingFriends = friends.filter(f => !f.exempt);
     const payingFriendsCount = payingFriends.length;
 
@@ -476,20 +476,25 @@ export const useVaquita = () => {
         .filter((e) => e.friendId === f.id)
         .reduce((sum, e) => sum + e.amount, 0);
 
-      // Contar cuántas cuotas cubre (incluyendo la suya si pagó)
+      // Contar cuántas cuotas cubre
       let quotasCovered = 0;
       
       // Solo contar cuotas si no está exento
       if (!f.exempt) {
         if (directExpenses > 0) {
-          quotasCovered = 1; // Su propia cuota
+          // Su propia cuota (solo cuenta una vez, no importa cuántos gastos hizo)
+          quotasCovered = 1;
           
-          // Más las cuotas de otros que cubrió
+          // Recopilar todos los amigos únicos que cubrió en todos sus gastos
+          const uniqueCoveredFriends = new Set();
           expenses
             .filter((e) => e.friendId === f.id && e.coversFor && e.coversFor.length > 0)
             .forEach((e) => {
-              quotasCovered += e.coversFor.length;
+              e.coversFor.forEach(coveredId => uniqueCoveredFriends.add(coveredId));
             });
+          
+          // Sumar las cuotas de los amigos únicos que cubrió
+          quotasCovered += uniqueCoveredFriends.size;
         } else {
           // Si no ha pagado nada, aún debe su propia cuota
           quotasCovered = 1;

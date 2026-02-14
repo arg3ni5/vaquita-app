@@ -164,14 +164,11 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
                       <span className="font-medium text-slate-700">{friend.name}</span>
                     </label>
                   ))}
-                  {coversFor.length > 0 && (() => {
-                    const totalPeopleCovered = coversFor.length + 1; // payer + covered friends
-                    return (
-                      <p className="text-xs text-indigo-600 font-bold mt-2 pl-2">
-                        ✓ {getFriendName(selectedFriendId)} pagará por {totalPeopleCovered} personas
-                      </p>
-                    );
-                  })()}
+                  {coversFor.length > 0 && (
+                    <p className="text-xs text-indigo-600 font-bold mt-2 pl-2">
+                      ✓ {getFriendName(selectedFriendId)} pagará por {coversFor.length + 1} cuotas
+                    </p>
+                  )}
                 </div>
               )}
             </div>

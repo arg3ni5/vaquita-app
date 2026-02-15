@@ -132,55 +132,81 @@ ${link} Ver detalle: ${shareUrl.toString()}
               <p className="text-slate-400 font-medium italic text-sm">Todo está saldado</p>
             </div>
           ) : (
-            totals.transactions.map((t, idx) => (
-              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-100 gap-4 hover:bg-white hover:shadow-md transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="text-center min-w-[70px]">
-                    <span className="text-[10px] font-black text-red-500 uppercase block mb-1">Debe</span>
-                    <span className="font-bold text-slate-800 text-sm">{t.from}</span>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-slate-300" />
-                  <div className="text-center min-w-[70px]">
-                    <span className="text-[10px] font-black text-emerald-500 uppercase block mb-1">Cobra</span>
-                    <span className="font-bold text-slate-800 text-sm">{t.to}</span>
+            <>
+              {/* Mostrar quién cubre a quién */}
+              {totals.balances.some(b => b.coveringFor?.length > 0) && (
+                <div className="mb-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <h3 className="text-xs font-bold text-indigo-700 uppercase mb-2">
+                    💸 Gastos Cubiertos
+                  </h3>
+                  <div className="space-y-1">
+                    {totals.balances
+                      .filter(b => b.coveringFor?.length > 0)
+                      .map(b => (
+                        <div key={b.id} className="text-sm text-indigo-700">
+                          <span className="font-bold">{b.name}</span> cubrirá la cuota de:{' '}
+                          {b.coveringFor.map((cf, idx) => (
+                            <span key={cf.id}>
+                              <span className="font-bold">{cf.name}</span>
+                              {idx < b.coveringFor.length - 1 ? ', ' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-5">
-                  <div className="flex flex-col items-end">
-                    <span className="text-xl font-black text-slate-900">{currency}{t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await toggleSettlementPaid(t.fromId, t.toId);
-                        } catch (error) {
-                          console.error('Error al actualizar el estado del pago:', error);
-                          await showAlert("Error", "No se pudo actualizar el estado del pago. Inténtalo de nuevo.", "error");
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider ${
-                        t.paid
-                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
-                    >
-                      {t.paid ? (
-                        <><CheckCircle2 className="w-3 h-3" /> Pagado</>
-                      ) : (
-                        <><Circle className="w-3 h-3" /> Pendiente</>
-                      )}
-                    </button>
+              )}
+
+              {totals.transactions.map((t, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-100 gap-4 hover:bg-white hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="text-center min-w-[70px]">
+                      <span className="text-[10px] font-black text-red-500 uppercase block mb-1">Debe</span>
+                      <span className="font-bold text-slate-800 text-sm">{t.from}</span>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-slate-300" />
+                    <div className="text-center min-w-[70px]">
+                      <span className="text-[10px] font-black text-emerald-500 uppercase block mb-1">Cobra</span>
+                      <span className="font-bold text-slate-800 text-sm">{t.to}</span>
+                    </div>
                   </div>
-                  {t.fromPhone && (
-                    <button
-                      onClick={() => sendWhatsApp(t)}
-                      className="bg-emerald-500 text-white p-3 rounded-xl hover:bg-emerald-600 shadow-sm flex items-center gap-2 font-bold text-xs active:scale-95"
-                    >
-                      <MessageCircle className="w-4 h-4" /> Cobrar
-                    </button>
-                  )}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-5">
+                    <div className="flex flex-col items-end">
+                      <span className="text-xl font-black text-slate-900">{currency}{t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await toggleSettlementPaid(t.fromId, t.toId);
+                          } catch (error) {
+                            console.error('Error al actualizar el estado del pago:', error);
+                            await showAlert("Error", "No se pudo actualizar el estado del pago. Inténtalo de nuevo.", "error");
+                          }
+                        }}
+                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider ${
+                          t.paid
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        }`}
+                      >
+                        {t.paid ? (
+                          <><CheckCircle2 className="w-3 h-3" /> Pagado</>
+                        ) : (
+                          <><Circle className="w-3 h-3" /> Pendiente</>
+                        )}
+                      </button>
+                    </div>
+                    {t.fromPhone && (
+                      <button
+                        onClick={() => sendWhatsApp(t)}
+                        className="bg-emerald-500 text-white p-3 rounded-xl hover:bg-emerald-600 shadow-sm flex items-center gap-2 font-bold text-xs active:scale-95"
+                      >
+                        <MessageCircle className="w-4 h-4" /> Cobrar
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </>
           )}
         </div>
       </div>

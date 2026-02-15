@@ -284,13 +284,29 @@ export const useVaquita = () => {
     window.history.replaceState({}, "", url.toString());
   };
 
-  const addFriend = async (name, phone, friendUid = null) => {
+  const addFriend = async (name, phone, friendUid = null, exempt = false, coveredBy = null) => {
     if (!name.trim() || !user || !vaquitaId) return;
+    
+    // Validation: exempt friends cannot have coveredBy
+    if (exempt && coveredBy) {
+      coveredBy = null;
+    }
+    
+    // Validation: coveredBy must reference a valid, non-exempt friend
+    if (coveredBy) {
+      const coveringFriend = friends.find(f => f.id === coveredBy);
+      if (!coveringFriend || coveringFriend.exempt) {
+        coveredBy = null;
+      }
+    }
+    
     const friendsRef = collection(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends");
     const friendData = {
       name,
       phone: phone.replace(/\D/g, ""),
       createdAt: Date.now(),
+      exempt: exempt || false,
+      coveredBy: coveredBy || null,
     };
     if (friendUid) friendData.uid = friendUid;
 
@@ -306,12 +322,28 @@ export const useVaquita = () => {
     }
   };
 
-  const updateFriend = async (id, name, phone) => {
+  const updateFriend = async (id, name, phone, exempt = false, coveredBy = null) => {
     if (!id || !user || !vaquitaId) return;
+    
+    // Validation: exempt friends cannot have coveredBy
+    if (exempt && coveredBy) {
+      coveredBy = null;
+    }
+    
+    // Validation: coveredBy must reference a valid, non-exempt friend (not self)
+    if (coveredBy) {
+      const coveringFriend = friends.find(f => f.id === coveredBy);
+      if (!coveringFriend || coveringFriend.exempt || coveredBy === id) {
+        coveredBy = null;
+      }
+    }
+    
     const friendDoc = doc(db, "artifacts", appId, "public", "data", "sessions", vaquitaId, "friends", id);
     await updateDoc(friendDoc, {
       name,
       phone: phone.replace(/\D/g, ""),
+      exempt: exempt || false,
+      coveredBy: coveredBy || null,
     });
   };
 
@@ -448,32 +480,118 @@ export const useVaquita = () => {
 
   // Calculations
   const totals = useMemo(() => {
-    if (friends.length === 0) return { total: 0, average: 0, transactions: [], balances: [] };
+    if (friends.length === 0) return { total: 0, average: 0, transactions: [], balances: [], exemptCount: 0, payingFriendsCount: 0 };
 
+    // Count friends who participate in the division (not exempt)
+    const payingFriendsCount = friends.filter(f => !f.exempt).length;
+
+    if (payingFriendsCount === 0) {
+      // Still compute total and balances even if no one is paying
+      const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+      const spentPerFriend = friends.map((f) => {
+        const totalSpent = expenses
+          .filter((e) => e.friendId === f.id)
+          .reduce((sum, e) => sum + e.amount, 0);
+        return {
+          id: f.id,
+          name: f.name,
+          phone: f.phone,
+          exempt: f.exempt,
+          balance: totalSpent, // Exempt friends are owed what they paid
+          shouldPay: 0,
+          paid: totalSpent,
+          coveredBy: f.coveredBy,
+        };
+      });
+      
+      return { 
+        total, 
+        average: 0, 
+        transactions: [], 
+        balances: spentPerFriend,
+        exemptCount: friends.length,
+        payingFriendsCount: 0
+      };
+    }
+
+    // Calculate how much each friend spent
     const spentPerFriend = friends.map((f) => {
-      const totalSpent = expenses.filter((e) => e.friendId === f.id).reduce((sum, e) => sum + e.amount, 0);
+      const totalSpent = expenses
+        .filter((e) => e.friendId === f.id)
+        .reduce((sum, e) => sum + e.amount, 0);
       return { ...f, totalSpent };
     });
 
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const average = total / friends.length;
+    
+    // Divide among those who participate (not exempt)
+    const average = total / payingFriendsCount;
 
-    const balances = spentPerFriend.map((f) => ({
-      id: f.id,
-      name: f.name,
-      phone: f.phone,
-      balance: f.totalSpent - average,
-    }));
+    // Calculate balances considering who covers whom
+    const balances = spentPerFriend.map((f) => {
+      if (f.exempt) {
+        // Guests don't participate in the division, but if they spent money, 
+        // they should be reimbursed (positive balance)
+        return {
+          id: f.id,
+          name: f.name,
+          phone: f.phone,
+          exempt: f.exempt,
+          balance: f.totalSpent, // What they paid is their balance (they're owed this)
+          shouldPay: 0,
+          paid: f.totalSpent,
+          coveredBy: f.coveredBy,
+        };
+      }
 
-    const debtors = balances.filter((b) => b.balance < -0.01).map((b) => ({ ...b, balance: Math.abs(b.balance) }));
-    const creditors = balances.filter((b) => b.balance > 0.01);
+      // Base quota for this person
+      let shouldPay = average;
 
+      // If someone covers their quota, they don't have to pay
+      // Validate that coveredBy references a valid, non-exempt friend
+      if (f.coveredBy) {
+        const coveringFriend = friends.find(friend => friend.id === f.coveredBy);
+        if (coveringFriend && !coveringFriend.exempt) {
+          shouldPay = 0;
+        }
+      }
+
+      // If this person covers others, add those quotas
+      const coveringFor = friends.filter(friend => 
+        friend.coveredBy === f.id && !friend.exempt
+      );
+      shouldPay += coveringFor.length * average;
+
+      // Balance: what they paid - what they should pay
+      const balance = f.totalSpent - shouldPay;
+
+      return {
+        id: f.id,
+        name: f.name,
+        phone: f.phone,
+        exempt: f.exempt,
+        balance,
+        shouldPay,
+        paid: f.totalSpent,
+        coveringFor: coveringFor.map(cf => ({ id: cf.id, name: cf.name })),
+        coveredBy: f.coveredBy,
+      };
+    });
+
+    // Debtors and creditors (only those participating in settlement)
+    const debtors = balances
+      .filter((b) => !b.exempt && b.balance < -0.01)
+      .map((b) => ({ ...b, balance: Math.abs(b.balance) }));
+    
+    const creditors = balances
+      .filter((b) => b.balance > 0.01);
+
+    // Generate transactions
     const transactions = [];
     const tempDebtors = [...debtors].sort((a, b) => b.balance - a.balance);
     const tempCreditors = [...creditors].sort((a, b) => b.balance - a.balance);
 
-    let d = 0,
-      c = 0;
+    let d = 0, c = 0;
     while (d < tempDebtors.length && c < tempCreditors.length) {
       const amount = Math.min(tempDebtors[d].balance, tempCreditors[c].balance);
       if (amount > 0.01) {
@@ -497,7 +615,14 @@ export const useVaquita = () => {
       if (tempCreditors[c].balance < 0.01) c++;
     }
 
-    return { total, average, transactions, balances };
+    return { 
+      total, 
+      average, 
+      transactions, 
+      balances,
+      payingFriendsCount,
+      exemptCount: friends.length - payingFriendsCount
+    };
   }, [friends, expenses, settlements]);
 
   return {

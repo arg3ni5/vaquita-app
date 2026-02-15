@@ -17,7 +17,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
     e.preventDefault();
     const amount = parseFloat(expenseAmount);
     if (!selectedFriendId) {
-      await showAlert("Campo requerido", "Selecciona quién pagó.", "warning");
+      await showAlert("Campo requerido", "Selecciona quién hizo el gasto.", "warning");
       return;
     }
     if (isNaN(amount) || amount <= 0) {
@@ -72,7 +72,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Receipt className="w-4 h-4" />Pagos
+            <Receipt className="w-4 h-4" />Gastos Compartidos
           </h2>
           <button
             onClick={() => setIsFormVisible(!isFormVisible)}
@@ -89,7 +89,7 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
             onChange={(e) => setSelectedFriendId(e.target.value)}
             className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm cursor-pointer"
           >
-            <option value="">¿Quién pagó?</option>
+            <option value="">¿Quién hizo este gasto?</option>
             {friends.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
           <div className="relative">
@@ -106,17 +106,18 @@ const ExpenseSection = ({ expenses, friends, currency, onAdd, onUpdate, onRemove
             <input
               id='descripcion'
               type="text"
-              placeholder="Descripción (ej. Pizza, Gasolina...)"
+              placeholder="¿En qué se gastó? (ej: Cena, Uber, Refresco)"
               value={expenseDescription}
               onChange={(e) => setExpenseDescription(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
+              disabled={isSaving}
             />
           </div>
           <button
             disabled={isSaving}
             className="sm:col-span-2 bg-indigo-600 text-white py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Registrando...' : 'Registrar Pago'}
+            {isSaving ? 'Guardando...' : 'Registrar Gasto'}
           </button>
         </form>
 
